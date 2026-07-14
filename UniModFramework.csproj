@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GamePath Condition="Exists('/media/linux_data/Steam/steamapps/common/Resonite/')">/media/linux_data/Steam/steamapps/common/Resonite/</GamePath>
+  </PropertyGroup>
+
+  <!-- Local game references -->
+  <ItemGroup Condition="Exists('$(GamePath)')">
+    <Reference Include="FrooxEngine">
+      <HintPath>$(GamePath)FrooxEngine.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Elements.Core">
+      <HintPath>$(GamePath)Elements.Core.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Renderite.Shared">
+      <HintPath>$(GamePath)Renderite.Shared.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+
+</Project>
