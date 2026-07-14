@@ -9,7 +9,7 @@ public class ExampleMod : UniMod
         // setup mod here
     }
 
-    [Patch(typeof(Engine), "Initialize")]
+    [UniPatch(typeof(Engine), "Initialize")]
     class MyPatch
     {
         void Postfix()

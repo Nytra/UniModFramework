@@ -2,11 +2,11 @@ using System;
 
 namespace UniModFramework;
 
-public class PatchAttribute : Attribute
+public class UniPatchAttribute : Attribute
 {
     public Type Type;
     public string MethodName;
-    public PatchAttribute(Type type, string methodName)
+    public UniPatchAttribute(Type type, string methodName)
     {
         Type = type;
         MethodName = methodName;

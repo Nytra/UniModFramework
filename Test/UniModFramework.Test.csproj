@@ -4,23 +4,11 @@
     <TargetFramework>net10.0</TargetFramework>
     <Langversion>14</Langversion>
     <RepositoryUrl>https://github.com/Nytra/UniModFramework</RepositoryUrl>
-    <PackageId>Nytra.UniModFramework.BepisLoader.Tests</PackageId>
-    <Product>UniModFramework.BepisLoader.Tests</Product>
-    <RootNamespace>UniModFramework.BepisLoader.Tests</RootNamespace>
+    <PackageId>Nytra.UniModFramework.Test</PackageId>
+    <Product>UniModFramework.Test</Product>
+    <RootNamespace>UniModFramework.Test</RootNamespace>
     <CopyToPlugins>true</CopyToPlugins>
-    <PluginTargetDir>$(GamePath)BepInEx/plugins/$(AssemblyName)</PluginTargetDir>
-    <LibTargetDir>$(GamePath)BepInEx/plugins/Nytra-UniModFramework/UniModFramework.BepisLoader.Tests</LibTargetDir>
-    <RestoreAdditionalProjectSources>
-      https://nuget-modding.resonite.net/v3/index.json;
-    </RestoreAdditionalProjectSources>
   </PropertyGroup>
-
-  <!-- Modding dependencies -->
-  <ItemGroup>
-    <PackageReference Include="BepInEx.ResonitePluginInfoProps" Version="3.*" />
-    <PackageReference Include="ResoniteModding.BepInExResoniteShim" Version="0.9.*" />
-    <PackageReference Include="ResoniteModding.BepisResoniteWrapper" Version="1.*" />
-  </ItemGroup>
   
   <!-- NuGet fallback stripped game references -->
   <ItemGroup Condition="!Exists('$(GamePath)')">
@@ -45,7 +33,7 @@
 
   <ItemGroup>
     <Reference Include="UniModFramework">
-      <HintPath>/home/nytra/code/UniModFramework/UniModFramework.BepisLoader/bin/Debug/net10.0/UniModFramework.dll</HintPath>
+      <HintPath>/home/nytra/code/UniModFramework/UniModFramework/bin/Debug/net10.0/UniModFramework.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>

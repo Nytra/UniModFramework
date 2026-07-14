@@ -1,7 +1,11 @@
+using BepInEx.NET.Common;
+
 namespace UniModFramework;
 
-public abstract partial class UniModBase
+public abstract class UniMod : BasePlugin
 {
+    public abstract void Init();
+    public override void Load() => Init();
     public static bool HasFeature(Feature feature)
     {
         switch (feature)
@@ -11,4 +15,6 @@ public abstract partial class UniModBase
         }
         return false;
     }
+
+    
 }
