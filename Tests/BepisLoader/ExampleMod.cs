@@ -1,8 +1,8 @@
 using FrooxEngine;
 using UniModFramework;
 
-[FeatureRequirement(Feature.PrePatching, FeatureRequirementType.Optional)]
-public class ExampleMod : UniModFramework.UniMod
+[FeatureRequirement(Feature.PrePatching, RequirementType.Optional)]
+public class ExampleMod : UniMod
 {
     public override void Init()
     {

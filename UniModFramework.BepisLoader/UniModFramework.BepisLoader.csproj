@@ -1,0 +1,71 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Langversion>14</Langversion>
+    <RepositoryUrl>https://github.com/Nytra/UniModFramework</RepositoryUrl>
+    <PackageId>Nytra.UniModFramework.BepisLoader</PackageId>
+    <Product>UniModFramework.BepisLoader</Product>
+    <RootNamespace>UniModFramework</RootNamespace>
+    <AssemblyName>UniModFramework</AssemblyName>
+    <CopyToPlugins>true</CopyToPlugins>
+    <PluginTargetDir>$(GamePath)BepInEx/plugins/$(AssemblyName)</PluginTargetDir>
+    <LibTargetDir>$(GamePath)BepInEx/plugins/Nytra-UniModFramework/UniModFramework.BepisLoader</LibTargetDir>
+    <RestoreAdditionalProjectSources>
+      https://nuget-modding.resonite.net/v3/index.json;
+    </RestoreAdditionalProjectSources>
+  </PropertyGroup>
+
+  <!-- Modding dependencies -->
+  <ItemGroup>
+    <PackageReference Include="BepInEx.ResonitePluginInfoProps" Version="3.*" />
+    <PackageReference Include="ResoniteModding.BepInExResoniteShim" Version="0.9.*" />
+    <PackageReference Include="ResoniteModding.BepisResoniteWrapper" Version="1.*" />
+  </ItemGroup>
+  
+  <!-- NuGet fallback stripped game references -->
+  <ItemGroup Condition="!Exists('$(GamePath)')">
+    <PackageReference Include="Resonite.GameLibs" Version="*" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!-- Local game references -->
+  <ItemGroup Condition="Exists('$(GamePath)')">
+    <Reference Include="FrooxEngine">
+      <HintPath>$(GamePath)FrooxEngine.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Elements.Core">
+      <HintPath>$(GamePath)Elements.Core.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Renderite.Shared">
+      <HintPath>$(GamePath)Renderite.Shared.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="../*.cs"  />
+  </ItemGroup>
+
+  <!-- <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <ItemGroup>
+      <PluginFiles Include="$(TargetPath)" />
+    </ItemGroup>
+  
+    <Copy SourceFiles="@(PluginFiles)" DestinationFolder="..\..\out\" />
+    <Message Text="Copied plugin files to out dir" Importance="high" />
+    
+    <Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(PluginTargetDir)" Condition="'$(CopyToPlugins)' == 'true'" />
+    <Message Text="Copied plugin files to $(PluginTargetDir)" Importance="high" Condition="'$(CopyToPlugins)' == 'true'" />
+  
+    <Copy SourceFiles="..\..\out\InterprocessLib.FrooxEngine.dll" DestinationFolder="$(LibTargetDir)" Condition="'$(CopyToPlugins)' == 'true'" />
+    <Message Text="Copied frooxengine lib to $(LibTargetDir)" Importance="high" Condition="'$(CopyToPlugins)' == 'true'" />
+  
+    <Copy SourceFiles="..\..\out\InterprocessLib.BepisLoader_Extensions.dll" DestinationFolder="$(LibTargetDir)" Condition="'$(CopyToPlugins)' == 'true'" />
+    <Message Text="Copied bepisloader extensions to $(LibTargetDir)" Importance="high" Condition="'$(CopyToPlugins)' == 'true'" />
+
+    <Exec Command="dotnet tool restore" WorkingDirectory="$(SolutionDir)" />
+    <Exec Command="dotnet tcli build" WorkingDirectory="$(SolutionDir)" />
+  </Target> -->
+</Project>

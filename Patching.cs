@@ -1,3 +1,7 @@
+using System;
+
+namespace UniModFramework;
+
 public class PatchAttribute : Attribute
 {
     public Type Type;

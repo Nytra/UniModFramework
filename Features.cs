@@ -1,11 +1,13 @@
-﻿namespace UniModFramework;
+﻿using System;
+
+namespace UniModFramework;
 
 public enum Feature
 {
     PrePatching
 }
 
-public enum FeatureRequirementType
+public enum RequirementType
 {
     Required,
     Optional
@@ -14,8 +16,8 @@ public enum FeatureRequirementType
 public class FeatureRequirementAttribute : Attribute
 {
     public Feature Feature;
-    public FeatureRequirementType RequirementType;
-    public FeatureRequirementAttribute(Feature feature, FeatureRequirementType type = FeatureRequirementType.Required)
+    public RequirementType RequirementType;
+    public FeatureRequirementAttribute(Feature feature, RequirementType type = RequirementType.Required)
     {
         Feature = feature;
         RequirementType = type;
