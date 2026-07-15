@@ -1,5 +1,6 @@
 using Elements.Core;
 using FrooxEngine;
+using HarmonyLib;
 using UniModFramework;
 
 namespace ExampleMod;
@@ -9,11 +10,11 @@ namespace ExampleMod;
 public class ExampleMod : UniMod<ExampleMod>
 {
     // called as early as possible, sometimes before the game is loaded
-    protected override bool OnLoad()
+    protected override bool OnLoad(Harmony harmony)
     {
         // setup mod here
-        Log("OnLoad");
-        PatchAll();
+        LogInfo("OnLoad");
+        harmony.PatchAll();
         return true;
     }
 
@@ -24,7 +25,7 @@ public class ExampleMod : UniMod<ExampleMod>
         UniLog.Log("hello!");
     }
 
-    [Patch(typeof(Engine), "Initialize")]
+    [HarmonyPatch(typeof(Engine), "Initialize")]
     class MyPatch
     {
         static void Postfix()

@@ -7,10 +7,10 @@ namespace UniModFramework;
 
 public abstract class UniMod<T> : BasePlugin where T : UniMod<T>, new()
 {
-    protected abstract bool OnLoad();
+    protected abstract bool OnLoad(Harmony harmony);
     public override void Load()
     {
-        OnLoad();
+        OnLoad(HarmonyInstance);
         var engineReadyHook = AccessTools.GetDeclaredMethods(typeof(T)).FirstOrDefault(m => m.GetCustomAttribute<HookAttribute>()?.HookName == "OnEngineReady");
         ResoniteHooks.OnEngineReady += () => engineReadyHook?.Invoke(this, []);
     }
@@ -23,12 +23,8 @@ public abstract class UniMod<T> : BasePlugin where T : UniMod<T>, new()
         }
         return false;
     }
-    protected new void Log(string msg)
+    protected void LogInfo(string msg)
     {
-        base.Log.LogInfo(msg);
-    }
-    protected void PatchAll()
-    {
-        HarmonyInstance.PatchAll(typeof(T).Assembly);
+        Log.LogInfo(msg);
     }
 }

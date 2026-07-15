@@ -13,12 +13,11 @@ public abstract class UniMod<T> : ResoniteMod where T : UniMod<T>, new()
     public override string Version => typeof(T).GetCustomAttribute<MetadataAttribute>()!.Version;
     public override string Author => typeof(T).GetCustomAttribute<MetadataAttribute>()!.Author;
     public override string Link => typeof(T).GetCustomAttribute<MetadataAttribute>()!.Link;
-    private Harmony? _harmony;
-    protected abstract bool OnLoad();
+    protected abstract bool OnLoad(Harmony harmony);
     public override void OnEngineInit()
     {
-        _harmony = new Harmony(typeof(T).GetCustomAttribute<MetadataAttribute>()!.GUID);
-        OnLoad();
+        var harmony = new Harmony(typeof(T).GetCustomAttribute<MetadataAttribute>()!.GUID);
+        OnLoad(harmony);
         var engineInitHook = AccessTools.GetDeclaredMethods(typeof(T)).FirstOrDefault(m => m.GetCustomAttribute<HookAttribute>()?.HookName == "OnEngineInit");
         engineInitHook?.Invoke(this, []);
         var engineReadyHook = AccessTools.GetDeclaredMethods(typeof(T)).FirstOrDefault(m => m.GetCustomAttribute<HookAttribute>()?.HookName == "OnEngineReady");
@@ -33,12 +32,8 @@ public abstract class UniMod<T> : ResoniteMod where T : UniMod<T>, new()
         }
         return false;
     }
-    protected void Log(string msg)
+    protected void LogInfo(string msg)
     {
         Msg(msg);
-    }
-    protected void PatchAll()
-    {
-        _harmony!.PatchAll(typeof(T).Assembly);
     }
 }

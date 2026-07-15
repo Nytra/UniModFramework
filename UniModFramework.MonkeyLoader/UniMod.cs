@@ -8,8 +8,8 @@ namespace UniModFramework;
 
 public abstract class UniMod<T> : ResoniteMonkey<T> where T : UniMod<T>, new()
 {
-    protected abstract bool OnLoad();
-    protected override bool OnLoaded() => OnLoad();
+    protected abstract bool OnLoad(Harmony harmony);
+    protected override bool OnLoaded() => OnLoad(Harmony);
     protected override bool OnEngineInit()
     {
         var engineInitHook = AccessTools.GetDeclaredMethods(typeof(T)).FirstOrDefault(m => m.GetCustomAttribute<HookAttribute>()?.HookName == "OnEngineInit");
@@ -31,12 +31,8 @@ public abstract class UniMod<T> : ResoniteMonkey<T> where T : UniMod<T>, new()
         }
         return false;
     }
-    protected void Log(string msg)
+    protected void LogInfo(string msg)
     {
         Logger.Info(() => msg);
-    }
-    protected void PatchAll()
-    {
-        Harmony.PatchAll(typeof(T).Assembly);
     }
 }

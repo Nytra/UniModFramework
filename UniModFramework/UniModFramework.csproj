@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <Compile Include="../Shared/*.cs"  />
+    <PackageReference Include=" Lib.Harmony.Thin" Version="2.4.2" PrivateAssets="all" />
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">

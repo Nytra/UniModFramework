@@ -1,16 +1,15 @@
+using HarmonyLib;
+
 namespace UniModFramework;
 
 public abstract class UniMod<T> where T : UniMod<T>, new()
 {
-    protected abstract bool OnLoad();
+    protected abstract bool OnLoad(Harmony harmony);
     public static bool HasFeature(Feature feature)
     {
         return false;
     }
-    protected void Log(string msg)
-    {
-    }
-    protected void PatchAll()
+    protected void LogInfo(string msg)
     {
     }
 }
