@@ -9,10 +9,10 @@ namespace UniModFramework;
 
 public abstract class UniMod<T> : ResoniteMod where T : UniMod<T>, new()
 {
-    public override string Name => typeof(T).Assembly.GetName().Name ?? "Unknown";
-    public override string Version => typeof(T).Assembly.GetCustomAttribute<AssemblyVersionAttribute>()?.Version ?? "0.0.0";
-    public override string Author => typeof(T).Assembly.GetCustomAttribute<AssemblyCompanyAttribute>()?.Company ?? "Unknown";
-    public override string Link => typeof(T).Assembly.GetCustomAttributes<AssemblyMetadataAttribute>().FirstOrDefault(attr => attr.Key == "RepositoryUrl")?.Value ?? "Unknown";
+    public override string Name => typeof(T).GetCustomAttribute<MetadataAttribute>()!.Name;
+    public override string Version => typeof(T).GetCustomAttribute<MetadataAttribute>()!.Version;
+    public override string Author => typeof(T).GetCustomAttribute<MetadataAttribute>()!.Author;
+    public override string Link => typeof(T).GetCustomAttribute<MetadataAttribute>()!.Link;
     protected abstract bool OnLoad();
     public override void OnEngineInit()
     {
