@@ -1,3 +1,5 @@
+namespace UniModFramework;
+
 public class MetadataAttribute : Attribute
 {
     public string GUID;
