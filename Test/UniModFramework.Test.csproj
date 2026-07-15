@@ -9,6 +9,7 @@
     <RootNamespace>UniModFramework.Test</RootNamespace>
     <GeneratePackageOnBuild>$(CopyToPlugins)</GeneratePackageOnBuild>
     <PackageOutputPath>$(GamePath)MonkeyLoader/Mods/</PackageOutputPath>
+    <BepInExProfileDir>/home/nytra/.local/share/com.kesomannen.gale/resonite/profiles/Default/</BepInExProfileDir>
   </PropertyGroup>
   
   <!-- NuGet fallback stripped game references -->
@@ -50,8 +51,8 @@
     <Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(GamePath)rml_mods/" Condition="'$(CopyToPlugins)' == 'true'" />
     <Message Text="Copied plugin files to $(GamePath)rml_mods/" Importance="high" Condition="'$(CopyToPlugins)' == 'true'"/>
 
-    <Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(GamePath)BepInEx/plugins/$(AssemblyName)" Condition="'$(CopyToPlugins)' == 'true'" />
-    <Message Text="Copied plugin files to $(GamePath)BepInEx/plugins/$(AssemblyName)" Importance="high" Condition="'$(CopyToPlugins)' == 'true'"/>
+    <Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(BepInExProfileDir)BepInEx/plugins/$(AssemblyName)" Condition="'$(CopyToPlugins)' == 'true'" />
+    <Message Text="Copied plugin files to $(BepInExProfileDir)BepInEx/plugins/$(AssemblyName)" Importance="high" Condition="'$(CopyToPlugins)' == 'true'"/>
   
     <!-- <Copy SourceFiles="..\..\out\InterprocessLib.FrooxEngine.dll" DestinationFolder="$(LibTargetDir)" Condition="'$(CopyToPlugins)' == 'true'" />
     <Message Text="Copied frooxengine lib to $(LibTargetDir)" Importance="high" Condition="'$(CopyToPlugins)' == 'true'" />

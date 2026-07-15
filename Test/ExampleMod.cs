@@ -4,6 +4,7 @@ using UniModFramework;
 
 namespace ExampleMod;
 
+[Metadata("ExampleMod", "ExampleMod", "1.0.0", "Nytra", "https://github.com/Nytra/UniModFramework")]
 [FeatureRequirement(Feature.PrePatching, RequirementType.Optional)]
 public class ExampleMod : UniMod<ExampleMod>
 {

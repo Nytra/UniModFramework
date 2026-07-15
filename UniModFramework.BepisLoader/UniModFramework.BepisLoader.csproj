@@ -8,7 +8,8 @@
     <Product>UniModFramework.BepisLoader</Product>
     <RootNamespace>UniModFramework</RootNamespace>
     <AssemblyName>UniModFramework</AssemblyName>
-    <LibTargetDir>$(GamePath)BepInEx/plugins/Nytra-UniModFramework/UniModFramework.BepisLoader</LibTargetDir>
+    <BepInExProfileDir>/home/nytra/.local/share/com.kesomannen.gale/resonite/profiles/Default/</BepInExProfileDir>
+    <LibTargetDir>$(BepInExProfileDir)BepInEx/plugins/Nytra-UniModFramework/UniModFramework.BepisLoader</LibTargetDir>
     <RestoreAdditionalProjectSources>
       https://nuget-modding.resonite.net/v3/index.json;
     </RestoreAdditionalProjectSources>

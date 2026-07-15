@@ -16,9 +16,9 @@
   <ItemGroup>
     <PackageReference Include="MonkeyLoader.GamePacks.Resonite" Version="0.32.2" GeneratePathProperty="true" />
 
-    <!-- <Reference Include="MonkeyLoader.Resonite.Data" PrivateAssets="all">
+    <Reference Include="MonkeyLoader.Resonite.Data" PrivateAssets="all">
       <HintPath>$(PkgMonkeyLoader_GamePacks_Resonite)\lib\net10.0\pre-patchers\MonkeyLoader.Resonite.Data.dll</HintPath>
-    </Reference> -->
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>
