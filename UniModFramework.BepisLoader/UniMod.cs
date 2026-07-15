@@ -27,4 +27,8 @@ public abstract class UniMod<T> : BasePlugin where T : UniMod<T>, new()
     {
         base.Log.LogInfo(msg);
     }
+    protected void PatchAll()
+    {
+        HarmonyInstance.PatchAll(typeof(T).Assembly);
+    }
 }

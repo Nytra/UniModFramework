@@ -6,7 +6,7 @@ using MonkeyLoader.Resonite;
 
 namespace UniModFramework;
 
-public abstract class UniMod<T> : ResoniteMonkey<T> where T : ResoniteMonkey<T>, new()
+public abstract class UniMod<T> : ResoniteMonkey<T> where T : UniMod<T>, new()
 {
     protected abstract bool OnLoad();
     protected override bool OnLoaded() => OnLoad();
@@ -34,5 +34,9 @@ public abstract class UniMod<T> : ResoniteMonkey<T> where T : ResoniteMonkey<T>,
     protected void Log(string msg)
     {
         Logger.Info(() => msg);
+    }
+    protected void PatchAll()
+    {
+        Harmony.PatchAll(typeof(T).Assembly);
     }
 }

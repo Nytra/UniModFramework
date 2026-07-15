@@ -10,4 +10,7 @@ public abstract class UniMod<T> where T : UniMod<T>, new()
     protected void Log(string msg)
     {
     }
+    protected void PatchAll()
+    {
+    }
 }

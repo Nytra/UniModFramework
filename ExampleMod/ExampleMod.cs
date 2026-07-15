@@ -8,11 +8,12 @@ namespace ExampleMod;
 [FeatureRequirement(Feature.PrePatching, RequirementType.Optional)]
 public class ExampleMod : UniMod<ExampleMod>
 {
-    // typically called as early as possible
+    // called as early as possible, sometimes before the game is loaded
     protected override bool OnLoad()
     {
         // setup mod here
         Log("OnLoad");
+        PatchAll();
         return true;
     }
 
