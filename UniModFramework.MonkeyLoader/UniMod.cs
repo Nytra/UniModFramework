@@ -6,7 +6,7 @@ using MonkeyLoader.Resonite;
 
 namespace UniModFramework;
 
-public abstract partial class UniMod<T> : ResoniteMonkey<T> where T : ResoniteMonkey<T>, new()
+public abstract class UniMod<T> : ResoniteMonkey<T> where T : ResoniteMonkey<T>, new()
 {
     protected abstract bool OnLoad();
     protected override bool OnLoaded() => OnLoad();

@@ -7,7 +7,7 @@ using FrooxEngine;
 
 namespace UniModFramework;
 
-public abstract partial class UniMod<T> : ResoniteMod where T : UniMod<T>, new()
+public abstract class UniMod<T> : ResoniteMod where T : UniMod<T>, new()
 {
     public override string Name => typeof(T).Assembly.GetName().Name ?? "Unknown";
     public override string Version => typeof(T).Assembly.GetCustomAttribute<AssemblyVersionAttribute>()?.Version ?? "0.0.0";
