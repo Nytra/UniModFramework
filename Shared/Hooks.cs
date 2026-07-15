@@ -1,5 +1,7 @@
 using System;
 
+namespace UniModFramework;
+
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
 public class HookAttribute : Attribute
 {

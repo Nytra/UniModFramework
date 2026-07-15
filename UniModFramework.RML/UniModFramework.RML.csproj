@@ -13,11 +13,15 @@
   <!-- Local game references -->
   <ItemGroup>
     <Reference Include="ResoniteModLoader">
-      <HintPath>/media/linux_data/Steam/steamapps/common/Resonite/Libraries/ResoniteModLoader.dll</HintPath>
+      <HintPath>$(GamePath)Libraries/ResoniteModLoader.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="0Harmony">
-      <HintPath>/media/linux_data/Steam/steamapps/common/Resonite/rml_libs/0Harmony.dll</HintPath>
+      <HintPath>$(GamePath)rml_libs/0Harmony.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="FrooxEngine">
+      <HintPath>$(GamePath)FrooxEngine.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
@@ -26,24 +30,24 @@
     <Compile Include="../Shared/*.cs"  />
   </ItemGroup>
 
-  <!-- <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <ItemGroup>
       <PluginFiles Include="$(TargetPath)" />
     </ItemGroup>
   
-    <Copy SourceFiles="@(PluginFiles)" DestinationFolder="..\..\out\" />
-    <Message Text="Copied plugin files to out dir" Importance="high" />
+    <!-- <Copy SourceFiles="@(PluginFiles)" DestinationFolder="../out/" />
+    <Message Text="Copied plugin files to out dir" Importance="high" /> -->
     
-    <Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(PluginTargetDir)" Condition="'$(CopyToPlugins)' == 'true'" />
-    <Message Text="Copied plugin files to $(PluginTargetDir)" Importance="high" Condition="'$(CopyToPlugins)' == 'true'" />
+    <Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(GamePath)rml_libs/" Condition="'$(CopyToPlugins)' == 'true'" />
+    <Message Text="Copied plugin files to $(GamePath)rml_libs/" Importance="high" Condition="'$(CopyToPlugins)' == 'true'" />
   
-    <Copy SourceFiles="..\..\out\InterprocessLib.FrooxEngine.dll" DestinationFolder="$(LibTargetDir)" Condition="'$(CopyToPlugins)' == 'true'" />
-    <Message Text="Copied frooxengine lib to $(LibTargetDir)" Importance="high" Condition="'$(CopyToPlugins)' == 'true'" />
+    <!-- <Copy SourceFiles="../out/UniModFramework.dll" DestinationFolder="$(LibTargetDir)" Condition="'$(CopyToPlugins)' == 'true'" />
+    <Message Text="Copied frooxengine lib to $(LibTargetDir)" Importance="high" Condition="'$(CopyToPlugins)' == 'true'" /> -->
   
-    <Copy SourceFiles="..\..\out\InterprocessLib.BepisLoader_Extensions.dll" DestinationFolder="$(LibTargetDir)" Condition="'$(CopyToPlugins)' == 'true'" />
-    <Message Text="Copied bepisloader extensions to $(LibTargetDir)" Importance="high" Condition="'$(CopyToPlugins)' == 'true'" />
+    <!-- <Copy SourceFiles="..\..\out\InterprocessLib.BepisLoader_Extensions.dll" DestinationFolder="$(LibTargetDir)" Condition="'$(CopyToPlugins)' == 'true'" />
+    <Message Text="Copied bepisloader extensions to $(LibTargetDir)" Importance="high" Condition="'$(CopyToPlugins)' == 'true'" /> -->
 
-    <Exec Command="dotnet tool restore" WorkingDirectory="$(SolutionDir)" />
-    <Exec Command="dotnet tcli build" WorkingDirectory="$(SolutionDir)" />
-  </Target> -->
+    <!-- <Exec Command="dotnet tool restore" WorkingDirectory="$(SolutionDir)" />
+    <Exec Command="dotnet tcli build" WorkingDirectory="$(SolutionDir)" /> -->
+  </Target>
 </Project>

@@ -24,4 +24,8 @@ public abstract class UniMod<T> : BasePlugin where T : UniMod<T>, new()
         }
         return false;
     }
+    protected new void Log(string msg)
+    {
+        base.Log.LogInfo(msg);
+    }
 }

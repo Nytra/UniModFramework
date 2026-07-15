@@ -31,4 +31,8 @@ public abstract partial class UniMod<T> : ResoniteMonkey<T> where T : ResoniteMo
         }
         return false;
     }
+    protected void Log(string msg)
+    {
+        Logger.Info(() => msg);
+    }
 }

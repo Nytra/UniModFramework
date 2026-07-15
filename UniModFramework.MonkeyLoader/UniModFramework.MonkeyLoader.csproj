@@ -8,6 +8,8 @@
     <Product>UniModFramework.MonkeyLoader</Product>
     <RootNamespace>UniModFramework</RootNamespace>
     <AssemblyName>UniModFramework</AssemblyName>
+    <GeneratePackageOnBuild>$(CopyToPlugins)</GeneratePackageOnBuild>
+    <PackageOutputPath>$(GamePath)MonkeyLoader/Libs/</PackageOutputPath>
   </PropertyGroup>
 
   <!-- Local game references -->
@@ -23,12 +25,12 @@
     <Compile Include="../Shared/*.cs"  />
   </ItemGroup>
 
-  <!-- <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <ItemGroup>
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <!-- <ItemGroup>
       <PluginFiles Include="$(TargetPath)" />
     </ItemGroup>
   
-    <Copy SourceFiles="@(PluginFiles)" DestinationFolder="..\..\out\" />
+    <Copy SourceFiles="@(PluginFiles)" DestinationFolder="../out/" />
     <Message Text="Copied plugin files to out dir" Importance="high" />
     
     <Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(PluginTargetDir)" Condition="'$(CopyToPlugins)' == 'true'" />
@@ -41,6 +43,8 @@
     <Message Text="Copied bepisloader extensions to $(LibTargetDir)" Importance="high" Condition="'$(CopyToPlugins)' == 'true'" />
 
     <Exec Command="dotnet tool restore" WorkingDirectory="$(SolutionDir)" />
-    <Exec Command="dotnet tcli build" WorkingDirectory="$(SolutionDir)" />
-  </Target> -->
+    <Exec Command="dotnet tcli build" WorkingDirectory="$(SolutionDir)" /> -->
+
+    <!-- <Exec Command="dotnet pack" WorkingDirectory="$(ProjectDir)" /> -->
+  </Target>
 </Project>

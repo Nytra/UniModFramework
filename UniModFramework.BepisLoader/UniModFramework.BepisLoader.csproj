@@ -8,8 +8,6 @@
     <Product>UniModFramework.BepisLoader</Product>
     <RootNamespace>UniModFramework</RootNamespace>
     <AssemblyName>UniModFramework</AssemblyName>
-    <CopyToPlugins>true</CopyToPlugins>
-    <PluginTargetDir>$(GamePath)BepInEx/plugins/$(AssemblyName)</PluginTargetDir>
     <LibTargetDir>$(GamePath)BepInEx/plugins/Nytra-UniModFramework/UniModFramework.BepisLoader</LibTargetDir>
     <RestoreAdditionalProjectSources>
       https://nuget-modding.resonite.net/v3/index.json;
@@ -48,24 +46,24 @@
     <Compile Include="../Shared/*.cs"  />
   </ItemGroup>
 
-  <!-- <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <ItemGroup>
       <PluginFiles Include="$(TargetPath)" />
     </ItemGroup>
   
-    <Copy SourceFiles="@(PluginFiles)" DestinationFolder="..\..\out\" />
-    <Message Text="Copied plugin files to out dir" Importance="high" />
+    <!-- <Copy SourceFiles="@(PluginFiles)" DestinationFolder="../out/" />
+    <Message Text="Copied plugin files to out dir" Importance="high" /> -->
     
-    <Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(PluginTargetDir)" Condition="'$(CopyToPlugins)' == 'true'" />
-    <Message Text="Copied plugin files to $(PluginTargetDir)" Importance="high" Condition="'$(CopyToPlugins)' == 'true'" />
+    <Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(LibTargetDir)" Condition="'$(CopyToPlugins)' == 'true'" />
+    <Message Text="Copied plugin files to $(LibTargetDir)" Importance="high" Condition="'$(CopyToPlugins)' == 'true'" />
   
-    <Copy SourceFiles="..\..\out\InterprocessLib.FrooxEngine.dll" DestinationFolder="$(LibTargetDir)" Condition="'$(CopyToPlugins)' == 'true'" />
+    <!-- <Copy SourceFiles="..\..\out\InterprocessLib.FrooxEngine.dll" DestinationFolder="$(LibTargetDir)" Condition="'$(CopyToPlugins)' == 'true'" />
     <Message Text="Copied frooxengine lib to $(LibTargetDir)" Importance="high" Condition="'$(CopyToPlugins)' == 'true'" />
   
     <Copy SourceFiles="..\..\out\InterprocessLib.BepisLoader_Extensions.dll" DestinationFolder="$(LibTargetDir)" Condition="'$(CopyToPlugins)' == 'true'" />
     <Message Text="Copied bepisloader extensions to $(LibTargetDir)" Importance="high" Condition="'$(CopyToPlugins)' == 'true'" />
 
     <Exec Command="dotnet tool restore" WorkingDirectory="$(SolutionDir)" />
-    <Exec Command="dotnet tcli build" WorkingDirectory="$(SolutionDir)" />
-  </Target> -->
+    <Exec Command="dotnet tcli build" WorkingDirectory="$(SolutionDir)" /> -->
+  </Target>
 </Project>
