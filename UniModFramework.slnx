@@ -10,9 +10,9 @@
   <Project Path="UniModFramework.RML/UniModFramework.RML.csproj" />
   <Project Path="UniModFramework.BepisLoader/UniModFramework.BepisLoader.csproj" />
   <Project Path="UniModFramework.MonkeyLoader/UniModFramework.MonkeyLoader.csproj" />
-
-  <Project Path="Test/UniModFramework.Test.csproj">
-      <BuildDependency Project="UniModFramework/UniModFramework.csproj" />
-  </Project>
   
+  <Project Path="ExampleMod/UniModFramework.ExampleMod.csproj">
+    <BuildDependency Project="UniModFramework/UniModFramework.csproj" />
+  </Project>
+
 </Solution>

@@ -4,9 +4,9 @@
     <TargetFramework>net10.0</TargetFramework>
     <Langversion>14</Langversion>
     <RepositoryUrl>https://github.com/Nytra/UniModFramework</RepositoryUrl>
-    <PackageId>Nytra.UniModFramework.Test</PackageId>
-    <Product>UniModFramework.Test</Product>
-    <RootNamespace>UniModFramework.Test</RootNamespace>
+    <PackageId>Nytra.UniModFramework.ExampleMod</PackageId>
+    <Product>UniModFramework.ExampleMod</Product>
+    <RootNamespace>UniModFramework.ExampleMod</RootNamespace>
     <GeneratePackageOnBuild>$(CopyToPlugins)</GeneratePackageOnBuild>
     <PackageOutputPath>$(GamePath)MonkeyLoader/Mods/</PackageOutputPath>
     <BepInExProfileDir>/home/nytra/.local/share/com.kesomannen.gale/resonite/profiles/Default/</BepInExProfileDir>

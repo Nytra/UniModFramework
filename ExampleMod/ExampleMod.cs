@@ -8,7 +8,6 @@ namespace ExampleMod;
 [FeatureRequirement(Feature.PrePatching, RequirementType.Optional)]
 public class ExampleMod : UniMod<ExampleMod>
 {
-
     // typically called as early as possible
     protected override bool OnLoad()
     {
