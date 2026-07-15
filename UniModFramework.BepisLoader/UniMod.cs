@@ -1,11 +1,20 @@
+using System.Linq;
+using System.Reflection;
 using BepInEx.NET.Common;
+using BepisResoniteWrapper;
+using HarmonyLib;
 
 namespace UniModFramework;
 
-public abstract class UniMod : BasePlugin
+public abstract class UniMod<T> : BasePlugin where T : UniMod<T>, new()
 {
-    public abstract void Init();
-    public override void Load() => Init();
+    protected abstract bool OnLoad();
+    public override void Load()
+    {
+        OnLoad();
+        var engineReadyHook = AccessTools.GetDeclaredMethods(typeof(T)).FirstOrDefault(m => m.GetCustomAttribute<HookAttribute>()?.HookName == "OnEngineReady");
+        ResoniteHooks.OnEngineReady += () => engineReadyHook?.Invoke(this, []);
+    }
     public static bool HasFeature(Feature feature)
     {
         switch (feature)
@@ -15,6 +24,4 @@ public abstract class UniMod : BasePlugin
         }
         return false;
     }
-
-    
 }

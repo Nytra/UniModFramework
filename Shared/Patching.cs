@@ -2,11 +2,12 @@ using System;
 
 namespace UniModFramework;
 
-public class UniPatchAttribute : Attribute
+[AttributeUsage(AttributeTargets.Class)]
+public class PatchAttribute : Attribute
 {
     public Type Type;
     public string MethodName;
-    public UniPatchAttribute(Type type, string methodName)
+    public PatchAttribute(Type type, string methodName)
     {
         Type = type;
         MethodName = methodName;

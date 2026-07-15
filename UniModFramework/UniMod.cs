@@ -1,8 +1,8 @@
 namespace UniModFramework;
 
-public abstract class UniMod
+public abstract class UniMod<T> where T : UniMod<T>, new()
 {
-    public abstract void Init();
+    protected abstract bool OnLoad();
     public static bool HasFeature(Feature feature)
     {
         return false;

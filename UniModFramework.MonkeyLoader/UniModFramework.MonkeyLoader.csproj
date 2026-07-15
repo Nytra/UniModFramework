@@ -4,11 +4,20 @@
     <TargetFramework>net10.0</TargetFramework>
     <Langversion>14</Langversion>
     <RepositoryUrl>https://github.com/Nytra/UniModFramework</RepositoryUrl>
-    <PackageId>Nytra.UniModFramework</PackageId>
-    <Product>UniModFramework</Product>
+    <PackageId>Nytra.UniModFramework.MonkeyLoader</PackageId>
+    <Product>UniModFramework.MonkeyLoader</Product>
     <RootNamespace>UniModFramework</RootNamespace>
     <AssemblyName>UniModFramework</AssemblyName>
   </PropertyGroup>
+
+  <!-- Local game references -->
+  <ItemGroup>
+    <PackageReference Include="MonkeyLoader.GamePacks.Resonite" Version="0.32.2" GeneratePathProperty="true" />
+
+    <!-- <Reference Include="MonkeyLoader.Resonite.Data" PrivateAssets="all">
+      <HintPath>$(PkgMonkeyLoader_GamePacks_Resonite)\lib\net10.0\pre-patchers\MonkeyLoader.Resonite.Data.dll</HintPath>
+    </Reference> -->
+  </ItemGroup>
 
   <ItemGroup>
     <Compile Include="../Shared/*.cs"  />

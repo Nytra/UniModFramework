@@ -13,6 +13,7 @@ public enum RequirementType
     Optional
 }
 
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 public class FeatureRequirementAttribute : Attribute
 {
     public Feature Feature;

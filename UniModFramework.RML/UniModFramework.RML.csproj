@@ -16,10 +16,14 @@
       <HintPath>/media/linux_data/Steam/steamapps/common/Resonite/Libraries/ResoniteModLoader.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>/media/linux_data/Steam/steamapps/common/Resonite/rml_libs/0Harmony.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="../SharedFiles/*.cs"  />
+    <Compile Include="../Shared/*.cs"  />
   </ItemGroup>
 
   <!-- <Target Name="PostBuild" AfterTargets="PostBuildEvent">
