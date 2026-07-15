@@ -29,9 +29,11 @@ public class ExampleMod : UniMod<ExampleMod>
     {
         static void Postfix()
         {
+            UniLog.Log("In postfix");
             if (HasFeature(Feature.PrePatching))
             {
                 // run patch code
+                UniLog.Log("Has pre patching!");
             }
         }
     }
