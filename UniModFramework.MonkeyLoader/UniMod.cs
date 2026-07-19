@@ -1,14 +1,11 @@
-using System;
-using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using MonkeyLoader.Resonite;
 
 namespace UniModFramework;
 
-public abstract class UniMod<T> : ResoniteMonkey<T> where T : UniMod<T>, new()
+public abstract partial class UniMod<T> : ResoniteMonkey<T> where T : UniMod<T>, new()
 {
-    protected abstract bool OnLoad(Harmony harmony);
     protected override bool OnLoaded() => OnLoad(Harmony);
     protected override bool OnEngineInit()
     {
@@ -22,17 +19,20 @@ public abstract class UniMod<T> : ResoniteMonkey<T> where T : UniMod<T>, new()
         engineReadyHook?.Invoke(this, []);
         return true;
     }
-    public static bool HasFeature(Feature feature)
+    public UniMod()
     {
-        switch (feature)
-        {
-            case Feature.PrePatching:
-                return true;
-        }
-        return false;
+        InfoLogger = (string str) => Logger.Info(() => str);
     }
-    protected void LogInfo(string msg)
+    static UniMod()
     {
-        Logger.Info(() => msg);
+        FeatureChecker = (Feature feature) =>
+        {
+            switch (feature)
+            {
+                case Feature.PrePatching:
+                    return true;
+            }
+            return false;
+        };
     }
 }

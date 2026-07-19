@@ -5,26 +5,28 @@ using HarmonyLib;
 
 namespace UniModFramework;
 
-public abstract class UniMod<T> : BasePlugin where T : UniMod<T>, new()
+public abstract partial class UniMod<T> : BasePlugin where T : UniMod<T>, new()
 {
-    protected abstract bool OnLoad(Harmony harmony);
     public override void Load()
     {
         OnLoad(HarmonyInstance);
         var engineReadyHook = AccessTools.GetDeclaredMethods(typeof(T)).FirstOrDefault(m => m.GetCustomAttribute<HookAttribute>()?.HookName == "OnEngineReady");
         ResoniteHooks.OnEngineReady += () => engineReadyHook?.Invoke(this, []);
     }
-    public static bool HasFeature(Feature feature)
+    public UniMod()
     {
-        switch (feature)
-        {
-            case Feature.PrePatching:
-                return true;
-        }
-        return false;
+        InfoLogger = (string str) => Log.LogInfo(str);
     }
-    protected void LogInfo(string msg)
+    static UniMod() 
     {
-        Log.LogInfo(msg);
+        FeatureChecker = (Feature feature) =>
+        {
+            switch (feature)
+            {
+                case Feature.PrePatching:
+                    return true;
+            }
+            return false;
+        };
     }
 }
