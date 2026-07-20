@@ -5,7 +5,7 @@ using FrooxEngine;
 
 namespace UniModFramework;
 
-public abstract partial class UniMod<T> : ResoniteMod where T : UniMod<T>, new()
+public abstract partial class UniMod<T, TConfig> : ResoniteMod where T : UniMod<T, TConfig>, new() where TConfig : Config, new()
 {
     public override string Name => typeof(T).GetCustomAttribute<MetadataAttribute>()!.Name;
     public override string Version => typeof(T).GetCustomAttribute<MetadataAttribute>()!.Version;
@@ -20,13 +20,18 @@ public abstract partial class UniMod<T> : ResoniteMod where T : UniMod<T>, new()
         var engineReadyHook = AccessTools.GetDeclaredMethods(typeof(T)).FirstOrDefault(m => m.GetCustomAttribute<HookAttribute>()?.HookName == "OnEngineReady");
         Engine.Current.OnReady += () => engineReadyHook?.Invoke(this, []);
     }
+    public override void DefineConfiguration(ModConfigurationDefinitionBuilder builder)
+    {
+        foreach (var cfgKeyField in AccessTools.GetDeclaredFields(typeof(TConfig)).Where(f => f.GetCustomAttribute<ConfigKeyAttribute>() is not null))
+        {
+            var cfgKey = cfgKeyField.GetValue(Config);
+            builder.Key((ModConfigurationKey)cfgKey!);
+        }
+    }
     public UniMod()
     {
-        InfoLogger = (string str) => Msg(str);
-    }
-    static UniMod()
-    {
-        FeatureChecker = (Feature feature) =>
+        _infoLogger = (string str) => Msg(str);
+        _featureChecker = (Feature feature) =>
         {
             switch (feature)
             {

@@ -4,9 +4,13 @@ using MonkeyLoader.Resonite;
 
 namespace UniModFramework;
 
-public abstract partial class UniMod<T> : ResoniteMonkey<T> where T : UniMod<T>, new()
+public abstract partial class UniMod<T, TConfig> : ConfiguredResoniteMonkey<T, TConfig> where T : UniMod<T, TConfig>, new() where TConfig : Config, new()
 {
-    protected override bool OnLoaded() => OnLoad(Harmony);
+    protected override bool OnLoaded()
+    {
+        Config = ConfiguredResoniteMonkey<T, TConfig>.Config.LoadSection<TConfig>();
+        return OnLoad(Harmony);
+    }
     protected override bool OnEngineInit()
     {
         var engineInitHook = AccessTools.GetDeclaredMethods(typeof(T)).FirstOrDefault(m => m.GetCustomAttribute<HookAttribute>()?.HookName == "OnEngineInit");
@@ -21,11 +25,8 @@ public abstract partial class UniMod<T> : ResoniteMonkey<T> where T : UniMod<T>,
     }
     public UniMod()
     {
-        InfoLogger = (string str) => Logger.Info(() => str);
-    }
-    static UniMod()
-    {
-        FeatureChecker = (Feature feature) =>
+        _infoLogger = (string str) => Logger.Info(() => str);
+        _featureChecker = (Feature feature) =>
         {
             switch (feature)
             {

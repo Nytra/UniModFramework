@@ -5,15 +5,22 @@ using UniModFramework;
 
 namespace ExampleMod;
 
+public class MyConfig : Config
+{
+    [ConfigKey]
+    public ConfigurationKey<float> MyValue = new("MyValue", 4.5f);
+}
+
 [Metadata("Nytra.ExampleMod", "ExampleMod", "1.0.0", "Nytra", "https://github.com/Nytra/UniModFramework")]
 [FeatureRequirement(Feature.PrePatching, RequirementType.Optional)]
-public class ExampleMod : UniMod<ExampleMod>
+public class ExampleMod : UniMod<ExampleMod, MyConfig>
 {
     // called as early as possible, sometimes before the game is loaded
     protected override bool OnLoad(Harmony harmony)
     {
         // setup mod here
         LogInfo("OnLoad");
+        LogInfo($"Key val: {Config!.MyValue}");
         harmony.PatchAll();
         return true;
     }
