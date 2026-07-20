@@ -13,6 +13,7 @@ public abstract partial class UniMod<T, TConfig> : ResoniteMod where T : UniMod<
     public override string Link => typeof(T).GetCustomAttribute<MetadataAttribute>()!.Link;
     public override void OnEngineInit()
     {
+        Config = new();
         var harmony = new Harmony(typeof(T).GetCustomAttribute<MetadataAttribute>()!.GUID);
         OnLoad(harmony);
         var engineInitHook = AccessTools.GetDeclaredMethods(typeof(T)).FirstOrDefault(m => m.GetCustomAttribute<HookAttribute>()?.HookName == "OnEngineInit");

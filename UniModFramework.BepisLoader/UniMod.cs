@@ -9,6 +9,7 @@ public abstract partial class UniMod<T, TConfig> : BasePlugin where T : UniMod<T
 {
     public override void Load()
     {
+        Config = new();
         foreach (var cfgKeyField in AccessTools.GetDeclaredFields(typeof(TConfig)).Where(f => f.GetCustomAttribute<ConfigKeyAttribute>() is not null))
         {
             var cfgKey = cfgKeyField.GetValue(Config);
