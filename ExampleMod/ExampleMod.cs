@@ -12,7 +12,6 @@ public class MyConfig : Config
 }
 
 [Metadata("Nytra.ExampleMod", "ExampleMod", "1.0.0", "Nytra", "https://github.com/Nytra/UniModFramework")]
-[FeatureRequirement(Feature.PrePatching, RequirementType.Optional)]
 public class ExampleMod : UniMod<ExampleMod, MyConfig>
 {
     // called as early as possible, sometimes before the game is loaded
@@ -38,11 +37,6 @@ public class ExampleMod : UniMod<ExampleMod, MyConfig>
         static void Postfix()
         {
             UniLog.Log("In postfix");
-            if (HasFeature(Feature.PrePatching))
-            {
-                // run patch code
-                UniLog.Log("Has pre patching!");
-            }
         }
     }
 }
