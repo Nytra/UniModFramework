@@ -10,15 +10,14 @@ public abstract partial class UniMod<T, TConfig> : BasePlugin where T : UniMod<T
     public override void Load()
     {
         Config = new();
-        foreach (var cfgKeyField in AccessTools.GetDeclaredFields(typeof(TConfig)).Where(f => f.GetCustomAttribute<ConfigKeyAttribute>() is not null))
+        foreach (var cfgKeyField in AccessTools.GetDeclaredFields(typeof(TConfig)).Where(f => f.FieldType.IsGenericType && f.FieldType.GetGenericTypeDefinition() == typeof(ConfigurationKey<>)))
         {
             var cfgKey = cfgKeyField.GetValue(Config);
             var initMethod = AccessTools.Method(cfgKey!.GetType(), "Init");
             initMethod.Invoke(cfgKey, [base.Config]);
         }
         OnLoad(HarmonyInstance);
-        var engineReadyHook = AccessTools.GetDeclaredMethods(typeof(T)).FirstOrDefault(m => m.GetCustomAttribute<HookAttribute>()?.HookName == "OnEngineReady");
-        ResoniteHooks.OnEngineReady += () => engineReadyHook?.Invoke(this, []);
+        ResoniteHooks.OnEngineReady += () => OnReady();
     }
     public UniMod()
     {

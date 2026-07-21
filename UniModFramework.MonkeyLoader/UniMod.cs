@@ -11,18 +11,7 @@ public abstract partial class UniMod<T, TConfig> : ConfiguredResoniteMonkey<T, T
         Config = ConfiguredResoniteMonkey<T, TConfig>.Config.LoadSection<TConfig>();
         return OnLoad(Harmony);
     }
-    protected override bool OnEngineInit()
-    {
-        var engineInitHook = AccessTools.GetDeclaredMethods(typeof(T)).FirstOrDefault(m => m.GetCustomAttribute<HookAttribute>()?.HookName == "OnEngineInit");
-        engineInitHook?.Invoke(this, []);
-        return true;
-    }
-    protected override bool OnEngineReady()
-    {
-        var engineReadyHook = AccessTools.GetDeclaredMethods(typeof(T)).FirstOrDefault(m => m.GetCustomAttribute<HookAttribute>()?.HookName == "OnEngineReady");
-        engineReadyHook?.Invoke(this, []);
-        return true;
-    }
+    protected override bool OnEngineReady() => OnReady();
     public UniMod()
     {
         _infoLogger = (string str) => Logger.Info(() => str);

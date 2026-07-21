@@ -12,7 +12,7 @@ public class Config : ConfigSection
     protected override IEnumerable<IDefiningConfigKey> GetConfigKeys()
     {
         var set = new HashSet<IDefiningConfigKey>();
-        foreach (var cfgKeyField in AccessTools.GetDeclaredFields(GetType()).Where(f => f.GetCustomAttribute<ConfigKeyAttribute>() is not null))
+        foreach (var cfgKeyField in AccessTools.GetDeclaredFields(GetType()).Where(f => f.FieldType.IsGenericType && f.FieldType.GetGenericTypeDefinition() == typeof(ConfigurationKey<>)))
         {
             var cfgKey = cfgKeyField.GetValue(this);
             var initMethod = AccessTools.Method(cfgKey!.GetType(), "Init");
@@ -24,37 +24,37 @@ public class Config : ConfigSection
     }
 }
 
-public partial class ConfigurationKey<T> : IConfigurationKey<T> where T : unmanaged
+public class ConfigurationKey<T> : IConfigurationKey<T>// where T : unmanaged
 {
     public string Id => _configKey!.Id;
     string IConfigurationKey.Id => Id;
-    public T Value => _configKey!.GetValue();
-    T IConfigurationKey<T>.Value => Value;
+    public T? Value => _configKey!.GetValue();
+    T? IConfigurationKey<T>.Value => Value;
     private DefiningConfigKey<T>? _configKey;
     private string _id;
-    private T _defaultValue;
-    public ConfigurationKey(string id, T defaultValue)
+    private T? _defaultValue;
+    public ConfigurationKey(string id, T? defaultValue)
     {
         _id = id;
         _defaultValue = defaultValue;
     }
-    public void SetValue(T val)
+    public void SetValue(T? val)
     {
-        _configKey!.SetValue(val);
+        _configKey!.SetValue(val!);
     }
-    public T GetValue()
+    public T? GetValue()
     {
         return _configKey!.GetValue();
     }
     internal void Init()
     {
-        _configKey = new(_id, computeDefault: () => _defaultValue);
+        _configKey = new(_id, computeDefault: () => _defaultValue!);
     }
-    public static implicit operator T(ConfigurationKey<T> cfg) => cfg.GetValue();
+    public static implicit operator T?(ConfigurationKey<T> cfg) => cfg.GetValue();
     public override string ToString() => $"{GetValue()}";
 }
 
-public class ConfigKeyAttribute : Attribute
-{
+// public class ConfigKeyAttribute : Attribute
+// {
     
-}
+// }

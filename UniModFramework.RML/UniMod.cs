@@ -15,15 +15,12 @@ public abstract partial class UniMod<T, TConfig> : ResoniteMod where T : UniMod<
     {
         var harmony = new Harmony(typeof(T).GetCustomAttribute<MetadataAttribute>()!.GUID);
         OnLoad(harmony);
-        var engineInitHook = AccessTools.GetDeclaredMethods(typeof(T)).FirstOrDefault(m => m.GetCustomAttribute<HookAttribute>()?.HookName == "OnEngineInit");
-        engineInitHook?.Invoke(this, []);
-        var engineReadyHook = AccessTools.GetDeclaredMethods(typeof(T)).FirstOrDefault(m => m.GetCustomAttribute<HookAttribute>()?.HookName == "OnEngineReady");
-        Engine.Current.OnReady += () => engineReadyHook?.Invoke(this, []);
+        Engine.Current.OnReady += () => OnReady();
     }
     public override void DefineConfiguration(ModConfigurationDefinitionBuilder builder)
     {
         Config = new();
-        foreach (var cfgKeyField in AccessTools.GetDeclaredFields(typeof(TConfig)).Where(f => f.GetCustomAttribute<ConfigKeyAttribute>() is not null))
+        foreach (var cfgKeyField in AccessTools.GetDeclaredFields(typeof(TConfig)).Where(f => f.FieldType.IsGenericType && f.FieldType.GetGenericTypeDefinition() == typeof(ConfigurationKey<>)))
         {
             var cfgKey = cfgKeyField.GetValue(Config);
             builder.Key((ModConfigurationKey)cfgKey!);
