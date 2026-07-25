@@ -24,6 +24,14 @@ public class TargetAssemblyAttribute : BepInEx.Preloader.Core.Patching.TargetAss
     }
 }
 
+public class TargetAllAssembliesAttribute : BepInEx.Preloader.Core.Patching.TargetAssemblyAttribute
+{
+
+    public TargetAllAssembliesAttribute() : base(TargetAssemblyAttribute.AllAssemblies)
+    {
+    }
+}
+
 public class TargetTypeAttribute : BepInEx.Preloader.Core.Patching.TargetTypeAttribute
 {
     public TargetTypeAttribute(string assemblyName, string typeName) : base(assemblyName, typeName)

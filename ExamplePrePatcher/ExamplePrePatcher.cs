@@ -15,25 +15,34 @@ public class ExamplePrePatcher : UniPrePatcher<ExamplePrePatcher, MyPrePatcherCo
 {
     protected override bool OnInitialize()
     {
+        LogInfo("Initialize");
         return true;
     }
 
     protected override bool OnFinalize()
     {
+        LogInfo("Finalize");
         return true;
     }
 
-    [TargetAssembly("Elements.Core.dll")]
-    public bool PatchFrooxEngine(ref AssemblyDefinition assembly)
-    {
-        LogInfo($"Patching: {assembly.Name.Name}");
-        return true;
-    }
+    // [TargetAssembly("Elements.Core.dll")]
+    // public bool PatchAsm(ref AssemblyDefinition assembly)
+    // {
+    //     LogInfo($"Patching assembly: {assembly.Name.Name}");
+    //     return true;
+    // }
 
-    [TargetType("Elements.Core.dll", "Elements.Core.CollectionsExtensions")]
-    public bool PatchFrooxEngine(TypeDefinition type)
+    // [TargetType("Elements.Core.dll", "Elements.Core.CollectionsExtensions")]
+    // public bool PatchType(TypeDefinition type)
+    // {
+    //     LogInfo($"Patching type: {type.Name}");
+    //     return true;
+    // }
+
+    [TargetAllAssemblies]
+    public bool PatchAllAsms(ref AssemblyDefinition assembly)
     {
-        LogInfo($"Patching: {type.Name}");
+        LogInfo($"Patching all assembly: {assembly.Name.Name}");
         return true;
     }
 }

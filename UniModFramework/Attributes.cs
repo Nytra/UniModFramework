@@ -42,6 +42,14 @@ public class TargetAssemblyAttribute : Attribute
     }
 }
 
+public class TargetAllAssembliesAttribute : Attribute
+{
+
+    public TargetAllAssembliesAttribute()
+    {
+    }
+}
+
 public class TargetTypeAttribute : Attribute
 {
     public AssemblyName TargetAssembly;

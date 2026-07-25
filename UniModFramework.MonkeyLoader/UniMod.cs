@@ -1,5 +1,6 @@
 using System.Reflection;
 using HarmonyLib;
+using MonkeyLoader.Configuration;
 using MonkeyLoader.Resonite;
 
 namespace UniModFramework;
@@ -8,7 +9,14 @@ public abstract partial class UniMod<T, TConfig> : ConfiguredResoniteMonkey<T, T
 {
     protected override bool OnLoaded()
     {
-        Config = ConfiguredResoniteMonkey<T, TConfig>.Config.LoadSection<TConfig>();
+        try
+        {
+            Config = ConfiguredResoniteMonkey<T, TConfig>.Config.LoadSection<TConfig>();
+        }
+        catch (ConfigLoadException)
+        {
+            // Empty config, this is probably fine
+        }
         return OnLoad(Harmony);
     }
     protected override bool OnEngineReady() => OnReady();
