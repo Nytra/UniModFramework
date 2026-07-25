@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Langversion>14</Langversion>
+    <RepositoryUrl>https://github.com/Nytra/UniModFramework</RepositoryUrl>
+    <PackageId>Nytra.UniModFramework.ExamplePrePatcher</PackageId>
+    <Product>UniModFramework.ExamplePrePatcher</Product>
+    <RootNamespace>UniModFramework.ExamplePrePatcher</RootNamespace>
+    <GeneratePackageOnBuild>$(CopyToPlugins)</GeneratePackageOnBuild>
+    <PackageOutputPath>$(GamePath)MonkeyLoader/Mods/</PackageOutputPath>
+    <BepInExProfileDir>/home/nytra/.local/share/com.kesomannen.gale/resonite/profiles/Default/</BepInExProfileDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="UniModFramework">
+      <HintPath>../out/UniModFramework.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <!-- <Reference Include="0Harmony">
+      <HintPath>$(GamePath)rml_libs/0Harmony.dll</HintPath>
+      <Private>False</Private>
+    </Reference> -->
+    <PackageReference Include=" Lib.Harmony.Thin" Version="2.4.2" PrivateAssets="all" />
+  </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <ItemGroup>
+      <PluginFiles Include="$(TargetPath)" />
+    </ItemGroup>
+  
+    <Copy SourceFiles="@(PluginFiles)" DestinationFolder="../out/" />
+    <Message Text="Copied plugin files to out dir" Importance="high" />
+    
+    <Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(GamePath)rml_mods/" Condition="'$(CopyToPlugins)' == 'true'" />
+    <Message Text="Copied plugin files to $(GamePath)rml_mods/" Importance="high" Condition="'$(CopyToPlugins)' == 'true'"/>
+
+    <Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(BepInExProfileDir)BepInEx/patchers/$(AssemblyName)" Condition="'$(CopyToPlugins)' == 'true'" />
+    <Message Text="Copied plugin files to $(BepInExProfileDir)BepInEx/patchers/$(AssemblyName)" Importance="high" Condition="'$(CopyToPlugins)' == 'true'"/>
+  
+    <!-- <Copy SourceFiles="..\..\out\InterprocessLib.FrooxEngine.dll" DestinationFolder="$(LibTargetDir)" Condition="'$(CopyToPlugins)' == 'true'" />
+    <Message Text="Copied frooxengine lib to $(LibTargetDir)" Importance="high" Condition="'$(CopyToPlugins)' == 'true'" />
+  
+    <Copy SourceFiles="..\..\out\InterprocessLib.BepisLoader_Extensions.dll" DestinationFolder="$(LibTargetDir)" Condition="'$(CopyToPlugins)' == 'true'" />
+    <Message Text="Copied bepisloader extensions to $(LibTargetDir)" Importance="high" Condition="'$(CopyToPlugins)' == 'true'" />
+
+    <Exec Command="dotnet tool restore" WorkingDirectory="$(SolutionDir)" />
+    <Exec Command="dotnet tcli build" WorkingDirectory="$(SolutionDir)" /> -->
+  </Target>
+</Project>

@@ -11,6 +11,9 @@
   <Project Path="UniModFramework.BepisLoader/UniModFramework.BepisLoader.csproj" />
   <Project Path="UniModFramework.MonkeyLoader/UniModFramework.MonkeyLoader.csproj" />
   
+  <Project Path="ExamplePrePatcher/UniModFramework.ExamplePrePatcher.csproj">
+    <BuildDependency Project="UniModFramework/UniModFramework.csproj" />
+  </Project>
   <Project Path="ExampleMod/UniModFramework.ExampleMod.csproj">
     <BuildDependency Project="UniModFramework/UniModFramework.csproj" />
   </Project>

@@ -24,6 +24,7 @@
   <ItemGroup>
     <Compile Include="../Shared/*.cs"  />
     <Compile Include="../UniModFramework/UniMod.cs"  />
+    <Compile Include="../UniModFramework/UniPrePatcher.cs"  />
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
