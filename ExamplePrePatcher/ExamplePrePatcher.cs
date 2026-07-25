@@ -10,7 +10,7 @@ public class MyPrePatcherConfig : Config
     
 }
 
-[PrePatcherMetadata("Nytra.ExampleMod", "ExampleMod", "1.0.0")]
+[PrePatcherMetadata("Nytra.ExamplePrePatcher", "ExamplePrePatcher", "1.0.0")]
 public class ExamplePrePatcher : UniPrePatcher<ExamplePrePatcher, MyPrePatcherConfig>
 {
     protected override bool OnInitialize()
