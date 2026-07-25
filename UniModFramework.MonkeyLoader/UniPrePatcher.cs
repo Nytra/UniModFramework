@@ -45,7 +45,6 @@ public abstract partial class UniPrePatcher<T, TConfig> : ConfiguredEarlyMonkey<
             var ppt = new PrePatchTarget(new MonkeyLoader.AssemblyName(attr!.TargetAssembly.Name!), [attr.TargetType]);
             LogInfo($"Adding prepatch target type: {ppt.Assembly.Name}:{string.Join(".", ppt.Types)}");
             set.Add(ppt);
-            //yield return ppt;
         }
 
         foreach (var targetAsm in AccessTools.GetDeclaredMethods(typeof(T)).Where(m => m.GetCustomAttribute<TargetAssemblyAttribute>() is not null))
@@ -54,7 +53,6 @@ public abstract partial class UniPrePatcher<T, TConfig> : ConfiguredEarlyMonkey<
             var ppt = new PrePatchTarget(new MonkeyLoader.AssemblyName(attr!.TargetAssembly.Name!));
             LogInfo($"Adding prepatch target assembly: {ppt.Assembly.Name}");
             set.Add(ppt);
-            //yield return ppt;
         }
 
         return set;
