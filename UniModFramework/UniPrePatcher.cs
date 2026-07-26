@@ -1,5 +1,3 @@
-using HarmonyLib;
-
 namespace UniModFramework;
 
 public abstract partial class UniPrePatcher<T, TConfig> where T : UniPrePatcher<T, TConfig>, new() where TConfig : Config, new()

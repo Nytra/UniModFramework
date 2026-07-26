@@ -30,6 +30,7 @@
     <Compile Include="../Shared/*.cs"  />
     <Compile Include="../UniModFramework/UniMod.cs"  />
     <Compile Include="../UniModFramework/UniPrePatcher.cs"  />
+    <Compile Include="../UniModFramework/Attributes.cs"  />
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">

@@ -38,7 +38,10 @@ public class TargetAssemblyAttribute : Attribute
 
     public TargetAssemblyAttribute(string assemblyName)
     {
-        TargetAssembly = AssemblyName.GetAssemblyName(assemblyName);
+        if (assemblyName.EndsWith(".dll"))
+            TargetAssembly = new(Path.GetFileNameWithoutExtension(assemblyName));
+        else
+            TargetAssembly = new(assemblyName);
     }
 }
 
@@ -57,7 +60,10 @@ public class TargetTypeAttribute : Attribute
 
     public TargetTypeAttribute(string assemblyName, string typeName)
     {
-        TargetAssembly = AssemblyName.GetAssemblyName(assemblyName);
+        if (assemblyName.EndsWith(".dll"))
+            TargetAssembly = new(Path.GetFileNameWithoutExtension(assemblyName));
+        else
+            TargetAssembly = new(assemblyName);
         TargetType = typeName;
     }
 }

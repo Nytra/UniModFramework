@@ -7,7 +7,7 @@ namespace ExamplePrePatcher;
 
 public class MyPrePatcherConfig : Config
 {
-    
+    public ConfigurationKey<bool> MyToggle = new("MyToggle", false);
 }
 
 [PrePatcherMetadata("Nytra.ExamplePrePatcher", "ExamplePrePatcher", "1.0.0")]
@@ -32,17 +32,17 @@ public class ExamplePrePatcher : UniPrePatcher<ExamplePrePatcher, MyPrePatcherCo
     //     return true;
     // }
 
-    // [TargetType("Elements.Core.dll", "Elements.Core.CollectionsExtensions")]
-    // public bool PatchType(TypeDefinition type)
-    // {
-    //     LogInfo($"Patching type: {type.Name}");
-    //     return true;
-    // }
-
-    [TargetAllAssemblies]
-    public bool PatchAllAsms(ref AssemblyDefinition assembly)
+    [TargetType("Elements.Core.dll", "Elements.Core.CollectionsExtensions")]
+    public bool PatchType(TypeDefinition type)
     {
-        LogInfo($"Patching all assembly: {assembly.Name.Name}");
+        LogInfo($"Patching type: {type.Name}");
         return true;
     }
+
+    // [TargetAllAssemblies]
+    // public bool PatchAllAsms(ref AssemblyDefinition assembly)
+    // {
+    //     LogInfo($"Patching all assembly: {assembly.Name.Name}");
+    //     return true;
+    // }
 }

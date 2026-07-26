@@ -8,6 +8,7 @@
     <Product>UniModFramework.ExamplePrePatcher</Product>
     <RootNamespace>UniModFramework.ExamplePrePatcher</RootNamespace>
     <GeneratePackageOnBuild>$(CopyToPlugins)</GeneratePackageOnBuild>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
     <PackageOutputPath>$(GamePath)MonkeyLoader/Mods/</PackageOutputPath>
     <BepInExProfileDir>/home/nytra/.local/share/com.kesomannen.gale/resonite/profiles/Default/</BepInExProfileDir>
   </PropertyGroup>
@@ -23,6 +24,10 @@
     </Reference> -->
     <PackageReference Include=" Lib.Harmony.Thin" Version="2.4.2" PrivateAssets="all" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(OutputPath)$(AssemblyName).dll" Pack="true" PackagePath="lib/$(TargetFramework)/pre-patchers/"/>
+  </ItemGroup>  
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <ItemGroup>

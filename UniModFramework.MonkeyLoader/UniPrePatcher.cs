@@ -2,12 +2,15 @@ using System.Reflection;
 using HarmonyLib;
 using MonkeyLoader.Configuration;
 using MonkeyLoader.Patching;
-using NuGet.Packaging;
 
 namespace UniModFramework;
 
 public abstract partial class UniPrePatcher<T, TConfig> : ConfiguredEarlyMonkey<T, TConfig> where T : UniPrePatcher<T, TConfig>, new() where TConfig : Config, new()
 {
+    // protected override IEnumerable<IFeaturePatch> GetFeaturePatches()
+    // {
+    //     return [FeaturePatches.]
+    // }
     protected override bool Prepare()
     {
         try
@@ -42,17 +45,21 @@ public abstract partial class UniPrePatcher<T, TConfig> : ConfiguredEarlyMonkey<
         foreach (var targetType in AccessTools.GetDeclaredMethods(typeof(T)).Where(m => m.GetCustomAttribute<TargetTypeAttribute>() is not null))
         {
             var attr = targetType.GetCustomAttribute<TargetTypeAttribute>();
+            LogInfo($"attr: {attr!.TargetAssembly.Name}:{attr.TargetType}");
             var ppt = new PrePatchTarget(new MonkeyLoader.AssemblyName(attr!.TargetAssembly.Name!), [attr.TargetType]);
             LogInfo($"Adding prepatch target type: {ppt.Assembly.Name}:{string.Join(".", ppt.Types)}");
             set.Add(ppt);
+            //yield return ppt;
         }
 
         foreach (var targetAsm in AccessTools.GetDeclaredMethods(typeof(T)).Where(m => m.GetCustomAttribute<TargetAssemblyAttribute>() is not null))
         {
             var attr = targetAsm.GetCustomAttribute<TargetAssemblyAttribute>();
+            LogInfo($"attr: {attr!.TargetAssembly.Name}");
             var ppt = new PrePatchTarget(new MonkeyLoader.AssemblyName(attr!.TargetAssembly.Name!));
             LogInfo($"Adding prepatch target assembly: {ppt.Assembly.Name}");
             set.Add(ppt);
+            //yield return ppt;
         }
 
         return set;
