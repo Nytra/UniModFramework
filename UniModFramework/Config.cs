@@ -11,14 +11,18 @@ public class ConfigurationKey<T> : IConfigurationKey<T>// where T : unmanaged
     string IConfigurationKey.Id => Id;
     public T? Value;
     T? IConfigurationKey<T>.Value => Value;
-    public ConfigurationKey(string id, T defaultValue)
+    public string? Description;
+    public event Action<T?>? OnChanged;
+    public ConfigurationKey(string id, string? description, T? defaultValue)
     {
         Id = id;
-        Value = defaultValue;
+        Value = defaultValue ?? default;
+        Description = description;
     }
     public void SetValue(T? val)
     {
         Value = val;
+        OnChanged?.Invoke(Value);
     }
     public T? GetValue()
     {

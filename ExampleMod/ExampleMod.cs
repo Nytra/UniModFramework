@@ -7,8 +7,8 @@ namespace ExampleMod;
 
 public class MyConfig : Config
 {
-    public ConfigurationKey<float> MyValue = new("MyValue", 4.5f);
-    public ConfigurationKey<string> MyString = new("MyString", "Hello");
+    public ConfigurationKey<float> MyValue = new("MyValue", "This is my value", 4.5f);
+    public ConfigurationKey<string> MyString = new("MyString", "This is my string", "Hello");
 }
 
 [Metadata("Nytra.ExampleMod", "ExampleMod", "1.0.0", "Nytra", "https://github.com/Nytra/UniModFramework")]
@@ -19,6 +19,7 @@ public class ExampleMod : UniMod<ExampleMod, MyConfig>
         // setup mod here
         LogInfo($"OnLoad. Key val: {Config!.MyValue}");
         harmony.PatchAll();
+        Config.MyValue.OnChanged += (val) => LogInfo($"Value changed: {val}");
         return true;
     }
 

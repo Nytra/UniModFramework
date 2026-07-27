@@ -16,10 +16,13 @@ public class ConfigurationKey<T> : IConfigurationKey<T>// where T : unmanaged
     private ConfigEntry<T>? _configEntry;
     private string _id;
     private T? _defaultValue;
-    public ConfigurationKey(string id, T defaultValue)
+    private string? _description;
+    public event Action<T?>? OnChanged;
+    public ConfigurationKey(string id, string? description, T? defaultValue)
     {
         _id = id;
-        _defaultValue = defaultValue;
+        _defaultValue = defaultValue ?? default;
+        _description = description;
     }
     public void SetValue(T? val)
     {
@@ -31,7 +34,8 @@ public class ConfigurationKey<T> : IConfigurationKey<T>// where T : unmanaged
     }
     internal void Init(ConfigFile file)
     {
-        _configEntry = file.Bind("General", _id, _defaultValue!, "");
+        _configEntry = file.Bind("General", _id, _defaultValue!, _description);
+        _configEntry.SettingChanged += (sender, args) => OnChanged?.Invoke(_configEntry.Value);
     }
     public static implicit operator T?(ConfigurationKey<T> cfg) => cfg.GetValue();
     public override string ToString() => $"{GetValue()}";

@@ -9,6 +9,7 @@ public abstract partial class UniMod<T, TConfig> : ConfiguredResoniteMonkey<T, T
 {
     protected override bool OnLoaded()
     {
+        // Maybe update the _infoLogger here so it logs to the game log?
         try
         {
             Config = ConfiguredResoniteMonkey<T, TConfig>.Config.LoadSection<TConfig>();

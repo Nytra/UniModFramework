@@ -7,7 +7,7 @@ namespace ExamplePrePatcher;
 
 public class MyPrePatcherConfig : Config
 {
-    public ConfigurationKey<bool> MyToggle = new("MyToggle", false);
+    public ConfigurationKey<bool> MyToggle = new("MyToggle", "This is my toggle", false);
 }
 
 [PrePatcherMetadata("Nytra.ExamplePrePatcher", "ExamplePrePatcher", "1.0.0")]

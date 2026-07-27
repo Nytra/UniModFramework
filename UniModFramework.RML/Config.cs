@@ -12,8 +12,10 @@ public class ConfigurationKey<T> : ModConfigurationKey<T>, IConfigurationKey<T>/
     string IConfigurationKey.Id => Id;
     //public T Value;
     T? IConfigurationKey<T>.Value => Value;
-    public ConfigurationKey(string id, T? defaultValue) : base(id, computeDefault: () => defaultValue!)
+    public new event Action<T?>? OnChanged;
+    public ConfigurationKey(string id, string? description, T? defaultValue) : base(id, description, computeDefault: () => defaultValue ?? default!)
     {
+        base.OnChanged += (val) => OnChanged?.Invoke(Value);
     }
     public void SetValue(T? val)
     {
