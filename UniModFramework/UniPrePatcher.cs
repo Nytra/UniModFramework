@@ -2,9 +2,9 @@ namespace UniModFramework;
 
 public abstract partial class UniPrePatcher<T, TConfig> where T : UniPrePatcher<T, TConfig>, new() where TConfig : Config, new()
 {
-    protected static TConfig? Config;
-    private static Func<Feature, bool>? _featureChecker;
-    private Action<string>? _infoLogger;
+    protected static TConfig? Config = null;
+    private static Func<Feature, bool>? _featureChecker = null;
+    private Action<string>? _infoLogger = null;
 
     /// <summary>
     /// Called when the patcher initializes.

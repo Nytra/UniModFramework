@@ -4,9 +4,9 @@ namespace UniModFramework;
 
 public abstract partial class UniMod<T, TConfig> where T : UniMod<T, TConfig>, new() where TConfig : Config, new()
 {
-    protected static TConfig? Config;
-    private static Func<Feature, bool>? _featureChecker;
-    private Action<string>? _infoLogger;
+    protected static TConfig? Config = null;
+    private static Func<Feature, bool>? _featureChecker = null;
+    private Action<string>? _infoLogger = null;
 
     /// <summary>
     /// Called when the mod is first loaded. This may happen before the game itself is loaded.
