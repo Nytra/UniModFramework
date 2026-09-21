@@ -40,8 +40,8 @@ public class ConfigurationKey<T> : IConfigurationKey<T>
     internal void Init(ConfigFile file)
     {
         _configEntry = file.Bind("General", _id, _defaultValue!, new ConfigDescription(_description, 
-                                                                                       _valueValidator is not null ? new ValueValidator<T>(_valueValidator) : null,
-                                                                                       _internalAccessOnly ? ["Hidden"] : null)
+                                                                                       _valueValidator is not null ? new ValueValidator<T>(_valueValidator, _defaultValue) : null,
+                                                                                       _internalAccessOnly ? ["Hidden"] : [])
         );
         _configEntry.SettingChanged += (sender, args) => OnChanged?.Invoke(_configEntry.Value);
     }
@@ -52,13 +52,18 @@ public class ConfigurationKey<T> : IConfigurationKey<T>
 internal class ValueValidator<T> : AcceptableValueBase
 {
     private Predicate<T?> _valueValidator;
-    public ValueValidator(Predicate<T?> validatorFunc) : base(typeof(T))
+    private T? _defaultValue;
+    public ValueValidator(Predicate<T?> validatorFunc, T? defaultValue) : base(typeof(T))
     {
         _valueValidator = validatorFunc;
+        _defaultValue = defaultValue;
     }
     public override object Clamp(object value)
     {
-        return default(T)!;
+        if (IsValid(value))
+            return value;
+        else
+            return _defaultValue!;
     }
 
     public override bool IsValid(object value)
