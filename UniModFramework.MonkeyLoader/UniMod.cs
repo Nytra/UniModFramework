@@ -1,5 +1,3 @@
-using System.Reflection;
-using HarmonyLib;
 using MonkeyLoader.Configuration;
 using MonkeyLoader.Resonite;
 

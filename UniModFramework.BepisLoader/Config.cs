@@ -7,22 +7,27 @@ public class Config
     
 }
 
-public class ConfigurationKey<T> : IConfigurationKey<T>// where T : unmanaged
+public class ConfigurationKey<T> : IConfigurationKey<T>
 {
     public string Id => _configEntry!.Definition.Key;
-    string IConfigurationKey.Id => Id;
     public T? Value => _configEntry!.Value;
-    T? IConfigurationKey<T>.Value => Value;
+    public T? DefaultValue => (T?)_configEntry!.DefaultValue;
+    public string? Description => _configEntry!.Description.Description;
+    public bool InternalAccessOnly => _configEntry!.Description.Tags?.Contains("Hidden") ?? false;
+    public event Action<T?>? OnChanged;
     private ConfigEntry<T>? _configEntry;
     private string _id;
     private T? _defaultValue;
     private string? _description;
-    public event Action<T?>? OnChanged;
-    public ConfigurationKey(string id, string? description, T? defaultValue)
+    private Predicate<T?>? _valueValidator;
+    private bool _internalAccessOnly;
+    public ConfigurationKey(string id, string? description = null, T? defaultValue = default, bool? internalAccessOnly = null, Predicate<T?>? valueValidator = null)
     {
         _id = id;
         _defaultValue = defaultValue ?? default;
         _description = description;
+        _valueValidator = valueValidator;
+        _internalAccessOnly = internalAccessOnly ?? false;
     }
     public void SetValue(T? val)
     {
@@ -34,14 +39,35 @@ public class ConfigurationKey<T> : IConfigurationKey<T>// where T : unmanaged
     }
     internal void Init(ConfigFile file)
     {
-        _configEntry = file.Bind("General", _id, _defaultValue!, _description);
+        _configEntry = file.Bind("General", _id, _defaultValue!, new ConfigDescription(_description, 
+                                                                                       _valueValidator is not null ? new ValueValidator<T>(_valueValidator) : null,
+                                                                                       _internalAccessOnly ? ["Hidden"] : null)
+        );
         _configEntry.SettingChanged += (sender, args) => OnChanged?.Invoke(_configEntry.Value);
     }
     public static implicit operator T?(ConfigurationKey<T> cfg) => cfg.GetValue();
     public override string ToString() => $"{GetValue()}";
 }
 
-// public class ConfigKeyAttribute : Attribute
-// {
-    
-// }
+internal class ValueValidator<T> : AcceptableValueBase
+{
+    private Predicate<T?> _valueValidator;
+    public ValueValidator(Predicate<T?> validatorFunc) : base(typeof(T))
+    {
+        _valueValidator = validatorFunc;
+    }
+    public override object Clamp(object value)
+    {
+        return default(T)!;
+    }
+
+    public override bool IsValid(object value)
+    {
+        return _valueValidator((T?)value);
+    }
+
+    public override string ToDescriptionString()
+    {
+        return "Custom value validator";
+    }
+}

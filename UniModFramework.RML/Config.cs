@@ -6,14 +6,19 @@ public class Config
 {
 }
 
-public class ConfigurationKey<T> : ModConfigurationKey<T>, IConfigurationKey<T>// where T : unmanaged
+public class ConfigurationKey<T> : ModConfigurationKey<T>, IConfigurationKey<T>
 {
     public string Id => Name;
-    string IConfigurationKey.Id => Id;
-    //public T Value;
-    T? IConfigurationKey<T>.Value => Value;
+    public T? DefaultValue
+    {
+        get
+        {
+            TryComputeDefaultTyped(out T? defaultValue);
+            return defaultValue;
+        }
+    }
     public new event Action<T?>? OnChanged;
-    public ConfigurationKey(string id, string? description, T? defaultValue) : base(id, description, computeDefault: () => defaultValue ?? default!)
+    public ConfigurationKey(string id, string? description = null, T? defaultValue = default, bool? internalAccessOnly = null, Predicate<T?>? valueValidator = null) : base(id, description, () => defaultValue ?? default!, internalAccessOnly ?? false, valueValidator)
     {
         base.OnChanged += (val) => OnChanged?.Invoke(Value);
     }
@@ -28,8 +33,3 @@ public class ConfigurationKey<T> : ModConfigurationKey<T>, IConfigurationKey<T>/
     public static implicit operator T?(ConfigurationKey<T> cfg) => cfg.GetValue();
     public override string ToString() => $"{GetValue()}";
 }
-
-// public class ConfigKeyAttribute : Attribute
-// {
-    
-// }

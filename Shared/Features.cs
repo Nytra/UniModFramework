@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace UniModFramework;
+﻿namespace UniModFramework;
 
 public enum Feature
 {

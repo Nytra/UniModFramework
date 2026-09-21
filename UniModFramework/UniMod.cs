@@ -4,6 +4,9 @@ namespace UniModFramework;
 
 public abstract partial class UniMod<T, TConfig> where T : UniMod<T, TConfig>, new() where TConfig : Config, new()
 {
+    /// <summary>
+    /// The config for this UniMod.
+    /// </summary>
     protected static TConfig? Config = null;
     private static Func<Feature, bool>? _featureChecker = null;
     private Action<string>? _infoLogger = null;

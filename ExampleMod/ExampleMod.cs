@@ -7,8 +7,9 @@ namespace ExampleMod;
 
 public class MyConfig : Config
 {
-    public ConfigurationKey<float> MyValue = new("MyValue", "This is my value", 4.5f);
+    public ConfigurationKey<float> MyValue = new("MyValue", "This is my value", 4.5f, valueValidator: (val) => val > 1.3f);
     public ConfigurationKey<string> MyString = new("MyString", "This is my string", "Hello");
+    public ConfigurationKey<int> MyInternalKey = new("MyInternalKey", "This is my internal key", internalAccessOnly: true);
 }
 
 [Metadata("Nytra.ExampleMod", "ExampleMod", "1.0.0", "Nytra", "https://github.com/Nytra/UniModFramework")]

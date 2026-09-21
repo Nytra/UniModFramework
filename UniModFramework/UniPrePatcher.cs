@@ -2,6 +2,9 @@ namespace UniModFramework;
 
 public abstract partial class UniPrePatcher<T, TConfig> where T : UniPrePatcher<T, TConfig>, new() where TConfig : Config, new()
 {
+    /// <summary>
+    /// The config for this UniPrePatcher.
+    /// </summary>
     protected static TConfig? Config = null;
     private static Func<Feature, bool>? _featureChecker = null;
     private Action<string>? _infoLogger = null;
