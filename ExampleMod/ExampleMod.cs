@@ -9,7 +9,7 @@ public class MyConfig : Config
 {
     public ConfigurationKey<float> MyValue = new("MyValue", "This is my value", 4.5f, valueValidator: (val) => val > 1.3f);
     public ConfigurationKey<string> MyString = new("MyString", "This is my string", "Hello");
-    public ConfigurationKey<int> MyInternalKey = new("MyInternalKey", "This is my internal key", internalAccessOnly: true);
+    public ConfigurationKey<int> MyInternalKey = new("MyInternalKey", "This is my internal key", tags: ["Hidden"]);
 }
 
 [Metadata("Nytra.ExampleMod", "ExampleMod", "1.0.0", "Nytra", "https://github.com/Nytra/UniModFramework")]
@@ -27,6 +27,7 @@ public class ExampleMod : UniMod<ExampleMod, MyConfig>
     protected override bool OnReady()
     {
         UniLog.Log("hello!");
+        Config!.MyValue.SetValue(6.7f);
         return true;
     }
 

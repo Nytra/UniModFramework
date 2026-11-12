@@ -6,7 +6,7 @@ public interface IConfigurationKey
     string? Description {get;}
     object? BoxedValue {get;}
     object? BoxedDefaultValue {get;}
-    bool InternalAccessOnly {get;}
+    object[] Tags {get;}
     Type ValueType {get;}
 }
 
@@ -19,4 +19,16 @@ public interface IConfigurationKey<T> : IConfigurationKey
     Type IConfigurationKey.ValueType => typeof(T);
     void SetValue(T? val);
     T? GetValue();
+    event Action<T?>? OnChanged;
 }
+
+// public interface IValueValidator
+// {
+//     bool Validate(object? val);
+// }
+
+// public interface IValueValidator<T> : IValueValidator
+// {
+//     bool Validate(T? val);
+//     bool IValueValidator.Validate(object? val) => Validate((T?)val);
+// }

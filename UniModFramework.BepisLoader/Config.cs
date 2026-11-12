@@ -13,21 +13,21 @@ public class ConfigurationKey<T> : IConfigurationKey<T>
     public T? Value => _configEntry!.Value;
     public T? DefaultValue => (T?)_configEntry!.DefaultValue;
     public string? Description => _configEntry!.Description.Description;
-    public bool InternalAccessOnly => _configEntry!.Description.Tags?.Contains("Hidden") ?? false;
+    public object[] Tags => _configEntry!.Description.Tags;
     public event Action<T?>? OnChanged;
     private ConfigEntry<T>? _configEntry;
     private string _id;
     private T? _defaultValue;
     private string? _description;
     private Predicate<T?>? _valueValidator;
-    private bool _internalAccessOnly;
-    public ConfigurationKey(string id, string? description = null, T? defaultValue = default, bool? internalAccessOnly = null, Predicate<T?>? valueValidator = null)
+    private object[] _tags;
+    public ConfigurationKey(string id, string? description = null, T? defaultValue = default, Predicate<T?>? valueValidator = null, params object[] tags)
     {
         _id = id;
         _defaultValue = defaultValue ?? default;
         _description = description;
         _valueValidator = valueValidator;
-        _internalAccessOnly = internalAccessOnly ?? false;
+        _tags = tags;
     }
     public void SetValue(T? val)
     {
@@ -41,7 +41,7 @@ public class ConfigurationKey<T> : IConfigurationKey<T>
     {
         _configEntry = file.Bind("General", _id, _defaultValue!, new ConfigDescription(_description, 
                                                                                        _valueValidator is not null ? new ValueValidator<T>(_valueValidator, _defaultValue) : null,
-                                                                                       _internalAccessOnly ? ["Hidden"] : [])
+                                                                                       _tags)
         );
         _configEntry.SettingChanged += (sender, args) => OnChanged?.Invoke(_configEntry.Value);
     }

@@ -17,10 +17,13 @@ public class ConfigurationKey<T> : ModConfigurationKey<T>, IConfigurationKey<T>
             return defaultValue;
         }
     }
+    public object[] Tags => _tags;
     public new event Action<T?>? OnChanged;
-    public ConfigurationKey(string id, string? description = null, T? defaultValue = default, bool? internalAccessOnly = null, Predicate<T?>? valueValidator = null) : base(id, description, () => defaultValue ?? default!, internalAccessOnly ?? false, valueValidator)
+    private object[] _tags;
+    public ConfigurationKey(string id, string? description = null, T? defaultValue = default, Predicate<T?>? valueValidator = null, params object[] tags) : base(id, description, () => defaultValue ?? default!, tags.Contains("Hidden"), valueValidator)
     {
         base.OnChanged += (val) => OnChanged?.Invoke(Value);
+        _tags = tags;
     }
     public void SetValue(T? val)
     {

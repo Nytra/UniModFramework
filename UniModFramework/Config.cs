@@ -11,20 +11,40 @@ public class ConfigurationKey<T> : IConfigurationKey<T>
     public T? Value {get; private set;}
     public T? DefaultValue {get; private set;}
     public string? Description {get; private set;}
-    public bool InternalAccessOnly {get; private set;}
+    public object[] Tags {get; private set;}
     public event Action<T?>? OnChanged;
-    public ConfigurationKey(string id, string? description = null, T? defaultValue = default, bool? internalAccessOnly = null, Predicate<T?>? valueValidator = null)
+    private Predicate<T?>? _valueValidator;
+    public ConfigurationKey(string id, string? description = null, T? defaultValue = default, Predicate<T?>? valueValidator = null, params object[] tags)
     {
         Id = id;
-        Value = defaultValue ?? default;
         DefaultValue = defaultValue;
         Description = description;
-        InternalAccessOnly = internalAccessOnly ?? false;
+        Tags = tags;
+        _valueValidator = valueValidator;
     }
     public void SetValue(T? val)
     {
-        Value = val;
-        OnChanged?.Invoke(Value);
+        bool valid = false;
+        if (_valueValidator is not null)
+        {
+            if (_valueValidator(val))
+            {
+                valid = true;
+            }
+            else
+            {
+                throw new InvalidOperationException($"Value not valid: {val?.ToString() ?? "NULL"}");
+            }
+        }
+        else
+        {
+            valid = true;
+        }
+        if (valid)
+        {
+            Value = val;
+            OnChanged?.Invoke(Value);
+        }
     }
     public T? GetValue()
     {
