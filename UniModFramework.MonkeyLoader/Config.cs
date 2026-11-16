@@ -1,4 +1,5 @@
 using HarmonyLib;
+//using MonkeyLoader.Components;
 using MonkeyLoader.Configuration;
 
 namespace UniModFramework;
@@ -36,15 +37,25 @@ public class ConfigurationKey<T> : IConfigurationKey<T>
         }
     }
     public string? Description => _configKey!.Description;
-    public object[] Tags => _tags;
+    public string[] Tags => _tags;
+    public IValueValidator<T>? Validator
+    {
+        get
+        {
+            if (_configKey!.Components.TryGet<IConfigKeyValidator<T>>(out var comp))
+                return (IValueValidator<T>)comp;
+            else
+                return null;
+        }
+    }
     public event Action<T?>? OnChanged;
     private DefiningConfigKey<T>? _configKey;
     private string _id;
     private T? _defaultValue;
     private string? _description;
-    private Predicate<T?>? _valueValidator;
-    private object[] _tags;
-    public ConfigurationKey(string id, string? description = null, T? defaultValue = default, Predicate<T?>? valueValidator = null, params object[] tags)
+    private IValueValidator<T>? _valueValidator;
+    private string[] _tags;
+    public ConfigurationKey(string id, string? description = default, T? defaultValue = default, IValueValidator<T>? valueValidator = default, params string[] tags)
     {
         _id = id;
         _defaultValue = defaultValue ?? default;
@@ -62,9 +73,80 @@ public class ConfigurationKey<T> : IConfigurationKey<T>
     }
     internal void Init()
     {
-        _configKey = new(_id, _description, () => _defaultValue!, _tags.Contains("Hidden"), _valueValidator);
+        _configKey = new(_id, _description, () => _defaultValue!, _tags.Contains("Hidden"));
+        if (_valueValidator is not null)
+            _configKey.Add((IConfigKeyValidator<T>)_valueValidator);
         _configKey.Changed += (sender, args) => OnChanged?.Invoke(_configKey.GetValue());
     }
     public static implicit operator T?(ConfigurationKey<T> cfg) => cfg.GetValue();
     public override string ToString() => $"{GetValue()}";
+}
+
+public class FuncValueValidator<T> : IConfigKeyValidator<T>, IValueValidator<T>
+{
+    private Predicate<T?> _func;
+    public FuncValueValidator(Predicate<T?> func)
+    {
+        ArgumentNullException.ThrowIfNull(func);
+        _func = func;
+    }
+
+    public void Initialize(IDefiningConfigKey<T> entity)
+    {
+        if (entity.HasValue && entity.TryGetValue(out var value) && !IsValid(value))
+            throw new InvalidOperationException($"Value for key [{entity.Id}] did not pass validation!");
+    }
+
+    public bool IsValid(T? value)
+    {
+        return _func(value);
+    }
+
+    public bool Validate(T? val) => IsValid(val);
+}
+
+public class RangeValueValidator<T> : IConfigKeyValidator<T>, IValueValidator<T> where T : unmanaged, IComparable
+{
+    private T _min;
+    private T _max;
+    public RangeValueValidator(T min, T max)
+    {
+        _min = min;
+        _max = max;
+    }
+
+    public void Initialize(IDefiningConfigKey<T> entity)
+    {
+        if (entity.HasValue && entity.TryGetValue(out var value) && !IsValid(value))
+            throw new InvalidOperationException($"Value for key [{entity.Id}] did not pass validation!");
+    }
+
+    public bool IsValid(T value)
+    {
+        return value.CompareTo(_min) >= 0 && value.CompareTo(_max) <= 0;
+    }
+
+    public bool Validate(T val) => IsValid(val);
+}
+
+public class ListValueValidator<T> : IConfigKeyValidator<T>, IValueValidator<T> where T : IEquatable<T?>
+{
+    private T?[] _acceptableValues;
+    public ListValueValidator(params T?[] values)
+    {
+        _acceptableValues = values;
+    }
+
+    public void Initialize(IDefiningConfigKey<T> entity)
+    {
+        if (entity.HasValue && entity.TryGetValue(out var value) && !IsValid(value))
+            throw new InvalidOperationException($"Value for key [{entity.Id}] did not pass validation!");
+    }
+
+    public bool IsValid(T? value)
+    {
+        return _acceptableValues.Contains(value);
+    }
+
+    public bool Validate(T? val) => IsValid(val);
 }
