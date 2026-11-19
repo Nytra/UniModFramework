@@ -9,12 +9,19 @@ public enum Feature
 
 public enum RequirementType
 {
+    /// <summary>
+    /// The mod isn't loaded without the feature, and an error is logged.
+    /// </summary>
     Required,
+    /// <summary>
+    /// The mod is loaded without the feature, and a message is logged saying some of its features are off.
+    /// The mod checks <c>HasFeature</c> to work without it.
+    /// </summary>
     Optional
 }
 
 /// <summary>
-/// Declares a feature the mod or pre-patcher uses. It isn't loaded if a required feature is missing.
+/// Declares a feature the mod or pre-patcher uses.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 public class FeatureRequirementAttribute : Attribute
@@ -67,5 +74,13 @@ internal static partial class Backend
         if (missing.Length == 0)
             return null;
         return $"{modType.Name} requires {string.Join(", ", missing)}, which this mod loader doesn't have";
+    }
+
+    /// <returns>A message for each optional feature the mod uses that this loader doesn't have.</returns>
+    internal static IEnumerable<string> MissingOptionalFeatures(Type modType)
+    {
+        return modType.GetCustomAttributes<FeatureRequirementAttribute>()
+                      .Where(requirement => requirement.RequirementType == RequirementType.Optional && !HasFeature(requirement.Feature))
+                      .Select(requirement => $"{modType.Name} can use {requirement.Feature}, which this mod loader doesn't have, so some of its features are off");
     }
 }

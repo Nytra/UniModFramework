@@ -25,7 +25,7 @@ Every public or protected member of the reference assembly must also exist in ea
 - Range validators show as sliders in BepisModSettings and MonkeyLoader's settings, and list validators as dropdowns in BepisModSettings. ResoniteModSettings doesn't show sliders for them yet.
 - Tags work like BepInEx's and are only used by BepisLoader, except `ConfigTags.Hidden`, which hides the key from config UIs on every loader (MonkeyLoader and RML make it internal access only).
 - `LogDebug`, `LogInfo`, `LogWarn` and `LogError` write to the loader's log and are static, so Harmony patch classes can use them.
-- `[FeatureRequirement(Feature.PrePatching)]` on the mod class stops it loading (with an error logged) on loaders without that feature. `RequirementType.Optional` only documents that the mod uses it, check with `HasFeature` instead.
+- `[FeatureRequirement(Feature.PrePatching)]` on the mod class stops it loading (with an error logged) on loaders without that feature. With `RequirementType.Optional` the mod still loads, a message is logged saying some of its features are off, and the mod checks `HasFeature` to work without it.
 - Returning `false` from `OnLoad`, `OnReady`, `OnInitialize` or `OnFinalize` logs an error. On BepisLoader patch methods still run if `OnInitialize` fails.
 - Pre-patch methods follow BepInEx's rules, which MonkeyLoader emulates: `[TargetAssembly]`, `[TargetType]` (both can be repeated) or `[TargetAllAssemblies]`, an `AssemblyDefinition` (optionally `ref`) or `TypeDefinition` parameter, an optional second `string` parameter that gets the target file name, and returning `void` or `true` to report changes.
 

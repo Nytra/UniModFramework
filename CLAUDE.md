@@ -101,7 +101,7 @@ Decisions made with these:
 - `Microsoft.CodeAnalysis.PublicApiAnalyzers` was tried and dropped: with `ProduceOnlyReferenceAssembly` it can't see any members (false RS0017 errors on every member), and listing every new member was too much friction before 1.0. NuGet package validation is used instead. Verified locally: packing 1.1.0 against a 1.0.0 baseline with a removed member fails with `CP0002`.
 - The examples use `ProjectReference` with `Private="false" PrivateAssets="all"`, so `UniModFramework.dll` isn't copied and their MonkeyLoader packages don't depend on `Nytra.UniModFramework`, which wouldn't resolve.
 - `UniMod<T>` / `UniPrePatcher<T>` without a config were tried and removed: they only save typing `, Config`, add API surface, and add an untested inheritance level for BepInEx plugin discovery. Mods without config keys use an empty config class.
-- `FeatureRequirementAttribute`'s `RequirementType.Optional` has no effect yet besides showing that the mod uses the feature.
+- `FeatureRequirementAttribute`'s `RequirementType.Optional` logs a message when the feature is missing, so players reading logs know some of the mod's features are off. Showing it in a mod manager or settings UI ("uses pre-patching if available") would be nice, but nothing does that yet.
 
 ## Open items
 

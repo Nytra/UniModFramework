@@ -63,6 +63,9 @@ public abstract partial class UniPrePatcher<T, TConfig> where T : UniPrePatcher<
             return false;
         }
 
+        foreach (var message in Backend.MissingOptionalFeatures(typeof(T)))
+            LogInfo(message);
+
         foreach (var warning in _config?.ResetInvalidValues() ?? [])
             LogWarn(warning);
 

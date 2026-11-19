@@ -32,4 +32,17 @@ public class FeatureRequirementTests
     {
         Assert.Null(Backend.CheckFeatures(typeof(NoRequirements)));
     }
+
+    [Fact]
+    public void Missing_optional_feature_gets_a_message()
+    {
+        Assert.Contains(nameof(Feature.PrePatching), Assert.Single(Backend.MissingOptionalFeatures(typeof(OptionallyUsesPrePatching))));
+    }
+
+    [Fact]
+    public void Required_features_get_no_optional_message()
+    {
+        Assert.Empty(Backend.MissingOptionalFeatures(typeof(RequiresPrePatching)));
+        Assert.Empty(Backend.MissingOptionalFeatures(typeof(NoRequirements)));
+    }
 }
