@@ -28,7 +28,7 @@ Use `-p:CopyToPlugins=false` so test builds don't copy into the game or Gale pro
   - BepisModSettings: https://github.com/ResoniteModding/BepisModSettings
   - ResoniteModSettings (RML's settings UI): https://github.com/badhaloninja/ResoniteModSettings
   - MonkeyLoader.GamePacks.Resonite (MonkeyLoader's settings UI): https://github.com/ResoniteModdingGroup/MonkeyLoader.GamePacks.Resonite
-- The versions the projects build against can differ from the repos' main branches (e.g. `MonkeyBase<T>.Logger` is static in the MonkeyLoader 0.29.0 package but not on main). When it matters, check the packaged or installed DLL itself, e.g. by reading its IL with Mono.Cecil.
+- The repos' main branches keep changing after a release, so they can differ from the versions the projects build against (MonkeyLoader's main is already past the `v0.29.0` tag the 0.29.0 package was built from, while its project file still says 0.29.0). When it matters, check out the release's tag, or read the packaged or installed DLL itself, e.g. its IL with Mono.Cecil.
 - Some loader types are created or found through reflection, so the compiler doesn't check them. Re-check these when updating a loader:
   - BepisLoader: `AcceptableValueRange<T>(min, max)` and `AcceptableValueList<T>(values)` in `CreateAcceptableValues`;
   - MonkeyLoader: `ConfigKeyRange<T>(min, max, comparer)` in `CreateValidator`;
@@ -83,7 +83,7 @@ Decisions made with these:
 - MonkeyLoader has its own validator components: `ConfigKeyRange<T>` (also an `IConfigKeyRange<T>`, which makes MonkeyLoader's settings show a slider) for range validators, and the predicate `ConfigKeyValidator<T>` for the others.
 - `ConfigSection` already has a `Keys` member, which is why the framework's is called `ConfigurationKeys`.
 - `DefiningConfigKey.Reset()` sets the default and fires a change event labelled `"Reset"`, which `ResetToDefault` uses. `Unset()` removes the value, after which `GetValue()` returns `default(T)`, not the key's default.
-- `MonkeyBase<T>.Logger` is static in the packaged version (it's an instance property on the repo's main branch).
+- `MonkeyBase<T>` hides the instance `MonkeyBase.Logger` with a static `Logger`, so in `UniMod`/`UniPrePatcher` `Logger` is static and can't be reached through `Instance`.
 - `ConfiguredMonkey.OnLoaded` and `ConfiguredEarlyMonkey.Prepare` only load the config section and call the base. `Monkey.OnLoaded` does `Harmony.PatchCategory(...)`, which `UniMod` deliberately skips since mods patch in `OnLoad`.
 - `EarlyMonkey.Prepare()` returning false skips pre-patching without failing. `UniPrePatcher.Validate` returns `OnFinalize()` instead of the base check that no job failed. Failed jobs are still restored, but the pre-patcher as a whole doesn't report the failure.
 
