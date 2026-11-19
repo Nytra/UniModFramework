@@ -26,7 +26,6 @@ public class TargetAssemblyAttribute : BepInEx.Preloader.Core.Patching.TargetAss
 
 public class TargetAllAssembliesAttribute : BepInEx.Preloader.Core.Patching.TargetAssemblyAttribute
 {
-
     public TargetAllAssembliesAttribute() : base(TargetAssemblyAttribute.AllAssemblies)
     {
     }

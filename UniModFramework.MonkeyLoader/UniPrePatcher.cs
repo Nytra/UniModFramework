@@ -1,6 +1,5 @@
 using System.Reflection;
 using HarmonyLib;
-using MonkeyLoader.Configuration;
 using MonkeyLoader.Patching;
 using Mono.Cecil;
 
@@ -8,33 +7,13 @@ namespace UniModFramework;
 
 public abstract partial class UniPrePatcher<T, TConfig> : ConfiguredEarlyMonkey<T, TConfig> where T : UniPrePatcher<T, TConfig>, new() where TConfig : Config, new()
 {
-    // protected override IEnumerable<IFeaturePatch> GetFeaturePatches()
-    // {
-    //     return [FeaturePatches.]
-    // }
     protected override bool Prepare()
     {
-        // Keys are initialized before the saved values are read, so if reading them fails the section is still usable with defaults.
-        Config = new();
-        try
-        {
-            ConfiguredEarlyMonkey<T, TConfig>.Config.LoadSection(Config);
-        }
-        catch (ConfigLoadException ex)
-        {
-            LogWarn($"Failed to load config, using defaults: {ex.Message}");
-        }
+        Config = Backend.LoadSection<TConfig>(ConfiguredEarlyMonkey<T, TConfig>.Config, WriteLog);
         return RunInitialize();
     }
-    protected override bool Prepare(IEnumerable<PatchJob> patchJobs)
-    {
-        LogInfo($"In prepare with patch jobs");
-        foreach (var patchJob in patchJobs)
-        {
-            LogInfo($"Prepare patch job: {patchJob.Target.Assembly.Name}:{string.Join(".", patchJob.Target.Types)}");
-        }
-        return true;
-    }
+    // The base skips all patching if any target assembly is missing, BepInEx patches the ones that exist
+    protected override bool Prepare(IEnumerable<PatchJob> patchJobs) => true;
     protected override IEnumerable<PrePatchTarget> GetPrePatchTargets()
     {
         var methods = AccessTools.GetDeclaredMethods(typeof(T));
@@ -48,19 +27,13 @@ public abstract partial class UniPrePatcher<T, TConfig> : ConfiguredEarlyMonkey<
             assemblyNames = assemblyNames.Concat(Directory.EnumerateFiles(MonkeyLoader.MonkeyLoader.GameAssemblyPath, "*.dll").Select(Path.GetFileNameWithoutExtension));
 
         // Only one target per assembly, MonkeyLoader waits forever for an assembly that is already part of another patch job
-        var set = new HashSet<PrePatchTarget>();
-        foreach (var assemblyName in assemblyNames.OfType<string>().Distinct(StringComparer.OrdinalIgnoreCase))
-        {
-            var ppt = new PrePatchTarget(new MonkeyLoader.AssemblyName(assemblyName), targetTypes.Where(t => IsAssembly(t.TargetAssembly, assemblyName)).Select(t => t.TargetType));
-            LogInfo($"Adding prepatch target: {ppt.Assembly.Name}:{string.Join(", ", ppt.Types)}");
-            set.Add(ppt);
-        }
-
-        return set;
+        return assemblyNames.OfType<string>()
+                            .Distinct(StringComparer.OrdinalIgnoreCase)
+                            .Select(assemblyName => new PrePatchTarget(new MonkeyLoader.AssemblyName(assemblyName), targetTypes.Where(t => IsAssembly(t.TargetAssembly, assemblyName)).Select(t => t.TargetType)))
+                            .ToArray();
     }
     protected override bool Patch(PatchJob patchJob)
     {
-        LogInfo($"Patch job: {patchJob.Target.Assembly.Name}.{string.Join(".", patchJob.Target.Types)}");
         var assemblyName = patchJob.Target.Assembly.Name;
         foreach (var method in AccessTools.GetDeclaredMethods(typeof(T)))
         {
@@ -98,19 +71,6 @@ public abstract partial class UniPrePatcher<T, TConfig> : ConfiguredEarlyMonkey<
         if (args[0] is AssemblyDefinition assembly)
             patchJob.Assembly = assembly;
     }
-    protected override bool Validate(IEnumerable<PatchJob> patchJobs)
-    {
-        return RunFinalize();
-        //return base.Validate(patchJobs);
-    }
-    private static partial void WriteLog(LogLevel level, string message)
-    {
-        switch (level)
-        {
-            case LogLevel.Debug: Logger?.Debug(() => message); break;
-            case LogLevel.Info: Logger?.Info(() => message); break;
-            case LogLevel.Warn: Logger?.Warn(() => message); break;
-            case LogLevel.Error: Logger?.Error(() => message); break;
-        }
-    }
+    protected override bool Validate(IEnumerable<PatchJob> patchJobs) => RunFinalize();
+    private static partial void WriteLog(LogLevel level, string message) => Backend.Log(Logger, level, message);
 }

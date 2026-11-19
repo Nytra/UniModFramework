@@ -109,6 +109,20 @@ public class ConfigTests
     }
 
     [Fact]
+    public void Reset_to_default_does_not_fire_on_changed_for_the_default()
+    {
+        var key = new ConfigurationKey<int>("Key", defaultValue: 1);
+        var changes = new List<int>();
+        key.OnChanged += changes.Add;
+
+        key.ResetToDefault();
+        key.SetValue(5);
+        key.ResetToDefault();
+
+        Assert.Equal([5, 1], changes);
+    }
+
+    [Fact]
     public void Reset_invalid_values_resets_to_default_with_a_warning()
     {
         var config = new DerivedConfig();

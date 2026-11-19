@@ -10,8 +10,7 @@ public abstract partial class UniMod<T, TConfig> : BasePlugin where T : UniMod<T
     public override void Load()
     {
         Config = new();
-        foreach (var key in Config.ConfigurationKeys.OfType<IBindableKey>())
-            key.Bind(base.Config);
+        Config.Bind(base.Config);
         if (RunLoad(HarmonyInstance))
             ResoniteHooks.OnEngineReady += () => RunReady();
     }
@@ -19,14 +18,5 @@ public abstract partial class UniMod<T, TConfig> : BasePlugin where T : UniMod<T
     {
         _logSource = Log;
     }
-    private static partial void WriteLog(LogLevel level, string message)
-    {
-        switch (level)
-        {
-            case LogLevel.Debug: _logSource?.LogDebug(message); break;
-            case LogLevel.Info: _logSource?.LogInfo(message); break;
-            case LogLevel.Warn: _logSource?.LogWarning(message); break;
-            case LogLevel.Error: _logSource?.LogError(message); break;
-        }
-    }
+    private static partial void WriteLog(LogLevel level, string message) => Backend.Log(_logSource, level, message);
 }

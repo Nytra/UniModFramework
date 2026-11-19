@@ -24,9 +24,5 @@ public partial class ConfigurationKey<T> : ModConfigurationKey<T>
     private partial void StoreValue(T? val) => Value = val;
     // RML resets keys by removing their value through ModConfiguration.Unset, which keys can't reach.
     // Setting the default gives the same value, but the config file stores it.
-    public partial void ResetToDefault()
-    {
-        if (!EqualityComparer<T?>.Default.Equals(Value, DefaultValue))
-            Value = DefaultValue;
-    }
+    private partial void ResetValue() => Value = DefaultValue;
 }

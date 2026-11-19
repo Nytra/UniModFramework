@@ -55,29 +55,8 @@ public abstract partial class UniPrePatcher<T, TConfig> where T : UniPrePatcher<
     /// Called by the backend once the config is loaded.
     /// </summary>
     /// <returns>Whether the patcher initialized and should patch.</returns>
-    private bool RunInitialize()
-    {
-        if ((Backend.CheckVersion(typeof(T)) ?? Backend.CheckFeatures(typeof(T))) is string error)
-        {
-            LogError(error);
-            return false;
-        }
+    private bool RunInitialize() =>
+        Backend.CanStart(typeof(T), _config, WriteLog) && Backend.Report(OnInitialize(), typeof(T), nameof(OnInitialize), WriteLog);
 
-        foreach (var message in Backend.MissingOptionalFeatures(typeof(T)))
-            LogInfo(message);
-
-        foreach (var warning in _config?.ResetInvalidValues() ?? [])
-            LogWarn(warning);
-
-        return Report(OnInitialize(), nameof(OnInitialize));
-    }
-
-    private bool RunFinalize() => Report(OnFinalize(), nameof(OnFinalize));
-
-    private static bool Report(bool success, string step)
-    {
-        if (!success)
-            LogError($"{step} failed");
-        return success;
-    }
+    private bool RunFinalize() => Backend.Report(OnFinalize(), typeof(T), nameof(OnFinalize), WriteLog);
 }

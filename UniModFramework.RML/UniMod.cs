@@ -23,14 +23,5 @@ public abstract partial class UniMod<T, TConfig> : ResoniteMod where T : UniMod<
         foreach (var key in Config.ConfigurationKeys.OfType<ModConfigurationKey>())
             builder.Key(key);
     }
-    private static partial void WriteLog(LogLevel level, string message)
-    {
-        switch (level)
-        {
-            case LogLevel.Debug: Debug(message); break;
-            case LogLevel.Info: Msg(message); break;
-            case LogLevel.Warn: Warn(message); break;
-            case LogLevel.Error: Error(message); break;
-        }
-    }
+    private static partial void WriteLog(LogLevel level, string message) => Backend.Log(level, message);
 }

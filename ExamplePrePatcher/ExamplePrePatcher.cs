@@ -23,12 +23,13 @@ public class ExamplePrePatcher : UniPrePatcher<ExamplePrePatcher, MyPrePatcherCo
         return true;
     }
 
-    // [TargetAssembly("Elements.Core.dll")]
-    // public bool PatchAsm(ref AssemblyDefinition assembly)
-    // {
-    //     LogInfo($"Patching assembly: {assembly.Name.Name}");
-    //     return true;
-    // }
+    // The methods that only log return false, which reports no changes
+    [TargetAssembly("Elements.Core.dll")]
+    public bool PatchAsm(ref AssemblyDefinition assembly)
+    {
+        LogInfo($"Patching assembly: {assembly.Name.Name}");
+        return false;
+    }
 
     [TargetType("Elements.Core.dll", "Elements.Core.CollectionsExtensions")]
     public bool PatchType(TypeDefinition type)
@@ -37,10 +38,10 @@ public class ExamplePrePatcher : UniPrePatcher<ExamplePrePatcher, MyPrePatcherCo
         return true;
     }
 
-    // [TargetAllAssemblies]
-    // public bool PatchAllAsms(ref AssemblyDefinition assembly)
-    // {
-    //     LogInfo($"Patching all assembly: {assembly.Name.Name}");
-    //     return true;
-    // }
+    [TargetAllAssemblies]
+    public bool PatchAllAsms(AssemblyDefinition assembly, string fileName)
+    {
+        LogDebug($"Patching all assemblies: {fileName}");
+        return false;
+    }
 }

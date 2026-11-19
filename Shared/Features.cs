@@ -83,4 +83,36 @@ internal static partial class Backend
                       .Where(requirement => requirement.RequirementType == RequirementType.Optional && !HasFeature(requirement.Feature))
                       .Select(requirement => $"{modType.Name} can use {requirement.Feature}, which this mod loader doesn't have, so some of its features are off");
     }
+
+    /// <summary>
+    /// The checks before a mod or pre-patcher starts, which also log the warnings for invalid config values.
+    /// </summary>
+    /// <returns>Whether it can start.</returns>
+    internal static bool CanStart(Type modType, Config? config, Action<LogLevel, string> log)
+    {
+        if ((CheckVersion(modType) ?? CheckFeatures(modType)) is string error)
+        {
+            log(LogLevel.Error, error);
+            return false;
+        }
+
+        foreach (var message in MissingOptionalFeatures(modType))
+            log(LogLevel.Info, message);
+
+        // Messages the framework logs itself name the mod, since RML only labels log lines with the mod when the mod's own code logs them
+        foreach (var warning in config?.ResetInvalidValues() ?? [])
+            log(LogLevel.Warn, $"{modType.Name}: {warning}");
+
+        return true;
+    }
+
+    /// <summary>
+    /// Logs an error if a step of the mod or pre-patcher failed.
+    /// </summary>
+    internal static bool Report(bool success, Type modType, string step, Action<LogLevel, string> log)
+    {
+        if (!success)
+            log(LogLevel.Error, $"{modType.Name}: {step} failed");
+        return success;
+    }
 }

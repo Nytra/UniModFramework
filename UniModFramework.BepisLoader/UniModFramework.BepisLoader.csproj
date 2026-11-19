@@ -20,27 +20,6 @@
     <PackageReference Include="ResoniteModding.BepInExResoniteShim" Version="0.9.*" />
     <PackageReference Include="ResoniteModding.BepisResoniteWrapper" Version="1.*" />
   </ItemGroup>
-  
-  <!-- NuGet fallback stripped game references -->
-  <!-- <ItemGroup Condition="!Exists('$(GamePath)')">
-    <PackageReference Include="Resonite.GameLibs" Version="*" PrivateAssets="all" />
-  </ItemGroup> -->
-
-  <!-- Local game references -->
-  <!-- <ItemGroup Condition="Exists('$(GamePath)')">
-    <Reference Include="FrooxEngine">
-      <HintPath>$(GamePath)FrooxEngine.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Elements.Core">
-      <HintPath>$(GamePath)Elements.Core.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Renderite.Shared">
-      <HintPath>$(GamePath)Renderite.Shared.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup> -->
 
   <ItemGroup>
     <Compile Include="../Shared/*.cs"  />
@@ -52,20 +31,8 @@
     <ItemGroup>
       <PluginFiles Include="$(TargetPath)" />
     </ItemGroup>
-  
-    <!-- <Copy SourceFiles="@(PluginFiles)" DestinationFolder="../out/" />
-    <Message Text="Copied plugin files to out dir" Importance="high" /> -->
-    
+
     <Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(LibTargetDir)" Condition="'$(CopyToPlugins)' == 'true'" />
     <Message Text="Copied plugin files to $(LibTargetDir)" Importance="high" Condition="'$(CopyToPlugins)' == 'true'" />
-  
-    <!-- <Copy SourceFiles="..\..\out\InterprocessLib.FrooxEngine.dll" DestinationFolder="$(LibTargetDir)" Condition="'$(CopyToPlugins)' == 'true'" />
-    <Message Text="Copied frooxengine lib to $(LibTargetDir)" Importance="high" Condition="'$(CopyToPlugins)' == 'true'" />
-  
-    <Copy SourceFiles="..\..\out\InterprocessLib.BepisLoader_Extensions.dll" DestinationFolder="$(LibTargetDir)" Condition="'$(CopyToPlugins)' == 'true'" />
-    <Message Text="Copied bepisloader extensions to $(LibTargetDir)" Importance="high" Condition="'$(CopyToPlugins)' == 'true'" />
-
-    <Exec Command="dotnet tool restore" WorkingDirectory="$(SolutionDir)" />
-    <Exec Command="dotnet tcli build" WorkingDirectory="$(SolutionDir)" /> -->
   </Target>
 </Project>

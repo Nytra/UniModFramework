@@ -85,6 +85,7 @@ Decisions made with these:
 - `DefiningConfigKey.Reset()` sets the default and fires a change event labelled `"Reset"`, which `ResetToDefault` uses. `Unset()` removes the value, after which `GetValue()` returns `default(T)`, not the key's default.
 - `MonkeyBase<T>` hides the instance `MonkeyBase.Logger` with a static `Logger`, so in `UniMod`/`UniPrePatcher` `Logger` is static and can't be reached through `Instance`.
 - `ConfiguredMonkey.OnLoaded` and `ConfiguredEarlyMonkey.Prepare` only load the config section and call the base. `Monkey.OnLoaded` does `Harmony.PatchCategory(...)`, which `UniMod` deliberately skips since mods patch in `OnLoad`.
+- The base `EarlyMonkey.Prepare(patchJobs)` returns false (skipping all patching) unless there is a patch job for every target, so one missing target assembly would stop the others. `UniPrePatcher` overrides it to return true, like BepInEx, which patches the targets that exist.
 - `EarlyMonkey.Prepare()` returning false skips pre-patching without failing. `UniPrePatcher.Validate` returns `OnFinalize()` instead of the base check that no job failed. Failed jobs are still restored, but the pre-patcher as a whole doesn't report the failure.
 
 ### ResoniteModLoader
@@ -93,7 +94,7 @@ Decisions made with these:
 - ResoniteModSettings maps keys to fields by scanning the mod class for fields with `[AutoRegisterConfigKey]`, and only shows a slider when that field has `FrooxEngine.RangeAttribute`. The framework's keys are fields of the config class, so they never get a slider.
 - `DefineConfiguration` runs before `OnEngineInit`, and the config file is loaded in between.
 - Keys are reset by removing their value with the public `ModConfiguration.Unset(key)` (the key's own `Unset` is internal), after which the key returns its default. Keys don't know their `ModConfiguration`, so `ResetToDefault` sets the default value instead, which the config file then stores.
-- The static `ResoniteMod.Debug`/`Msg`/`Warn`/`Error` work out the calling mod from the stack trace.
+- The static `ResoniteMod.Debug`/`Msg`/`Warn`/`Error` work out the calling mod from the stack trace, taking the first frame from a mod assembly (`Util.ExecutingMod`). The framework is in `rml_libs`, not a mod, so its own frames are skipped. Messages the framework logs itself (from `RunLoad`, called from `OnEngineInit`) have no mod frame on the stack, so RML labels them `[ResoniteModLoader]` without the mod. That's why every message the framework logs names the mod in its text (`Backend.CanStart`, `Backend.Report`), on every loader.
 - There is no pre-patching, so nothing runs a `UniPrePatcher`.
 
 ### BepisLoader / BepInEx
@@ -136,5 +137,4 @@ Decisions made with these:
 - No sliders on RML, deliberately left for later. If it becomes important, the preferred option is a runtime patch of ResoniteModSettings so it finds a range for the framework's keys (depends on its internals). Asking its maintainer to read a range from the key itself was considered and rejected.
 - The config UIs of the loaders handle invalid input their own way, the framework can't change that without patching them.
 - After the first NuGet release, set `PackageValidationBaselineVersion` in `UniModFramework/UniModFramework.csproj`.
-- The reference project's PostBuild still copies the reference-only `UniModFramework.dll` to `out/`, which nothing uses now.
 - No unit tests cover the backends themselves (they need the loaders running), only the shared code and the API surface.

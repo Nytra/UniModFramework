@@ -135,7 +135,16 @@ public partial class ConfigurationKey<T> : IConfigurationKey<T>
         return true;
     }
     /// <inheritdoc/>
-    public partial void ResetToDefault();
+    public void ResetToDefault()
+    {
+        // Skipped like in TrySetValue, so OnChanged only fires for real changes
+        if (!EqualityComparer<T?>.Default.Equals(Value, DefaultValue))
+            ResetValue();
+    }
+    /// <summary>
+    /// Sets the value back to the default, the way the loader does it.
+    /// </summary>
+    private partial void ResetValue();
     /// <summary>
     /// Stores an already validated value in the loader's config.
     /// </summary>
@@ -227,7 +236,7 @@ internal interface IListValueValidator
     Array Values {get;}
 }
 
-public class ListValueValidator<T> : IValueValidator<T>, IListValueValidator where T : IEquatable<T?>
+public class ListValueValidator<T> : IValueValidator<T>, IListValueValidator
 {
     private readonly T?[] _acceptableValues;
     public ListValueValidator(params T?[] values)

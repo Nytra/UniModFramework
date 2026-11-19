@@ -43,21 +43,18 @@ public class TargetAssemblyAttribute : Attribute
 
     public TargetAssemblyAttribute(string assemblyName)
     {
-        if (assemblyName.EndsWith(".dll"))
-            TargetAssembly = new(Path.GetFileNameWithoutExtension(assemblyName));
-        else
-            TargetAssembly = new(assemblyName);
+        TargetAssembly = ParseAssemblyName(assemblyName);
     }
+
+    /// <summary>
+    /// Accepts the assembly name with or without <c>.dll</c>, like BepInEx.
+    /// </summary>
+    internal static AssemblyName ParseAssemblyName(string assemblyName) =>
+        new(assemblyName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) ? Path.GetFileNameWithoutExtension(assemblyName) : assemblyName);
 }
 
 [AttributeUsage(AttributeTargets.Method)]
-public class TargetAllAssembliesAttribute : Attribute
-{
-
-    public TargetAllAssembliesAttribute()
-    {
-    }
-}
+public class TargetAllAssembliesAttribute : Attribute;
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
 public class TargetTypeAttribute : Attribute
@@ -67,10 +64,7 @@ public class TargetTypeAttribute : Attribute
 
     public TargetTypeAttribute(string assemblyName, string typeName)
     {
-        if (assemblyName.EndsWith(".dll"))
-            TargetAssembly = new(Path.GetFileNameWithoutExtension(assemblyName));
-        else
-            TargetAssembly = new(assemblyName);
+        TargetAssembly = TargetAssemblyAttribute.ParseAssemblyName(assemblyName);
         TargetType = typeName;
     }
 }

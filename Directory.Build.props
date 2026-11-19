@@ -18,14 +18,4 @@
     <!-- Copies builds into the game and mod loader folders -->
     <CopyToPlugins Condition="'$(CopyToPlugins)' == ''">false</CopyToPlugins>
   </PropertyGroup>
-  
-  <!-- <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <ItemGroup>
-      <PluginFiles Include="$(TargetPath)" />
-      <PluginFiles Include="$(TargetDir)$(TargetName).pdb" Condition="Exists('$(TargetDir)$(TargetName).pdb')" />
-    </ItemGroup>
-  
-    <Copy SourceFiles="@(PluginFiles)" DestinationFolder="..\out\" />
-    <Message Text="Copied files to out dir" Importance="high" />
-  </Target> -->
 </Project>

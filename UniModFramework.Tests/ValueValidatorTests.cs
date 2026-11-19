@@ -38,4 +38,14 @@ public class ValueValidatorTests
         Assert.False(listWithoutNull.Validate(null));
         Assert.True(listWithoutNull.Validate("b"));
     }
+
+    private enum SomeEnum { A, B, C }
+
+    [Fact]
+    public void List_validator_works_with_enums()
+    {
+        var validator = new ListValueValidator<SomeEnum>(SomeEnum.A, SomeEnum.C);
+        Assert.True(validator.Validate(SomeEnum.C));
+        Assert.False(validator.Validate(SomeEnum.B));
+    }
 }

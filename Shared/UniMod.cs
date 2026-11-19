@@ -58,29 +58,8 @@ public abstract partial class UniMod<T, TConfig> where T : UniMod<T, TConfig>, n
     /// Called by the backend once the config is loaded.
     /// </summary>
     /// <returns>Whether the mod loaded and should get <see cref="OnReady"/>.</returns>
-    private bool RunLoad(Harmony harmony)
-    {
-        if ((Backend.CheckVersion(typeof(T)) ?? Backend.CheckFeatures(typeof(T))) is string error)
-        {
-            LogError(error);
-            return false;
-        }
+    private bool RunLoad(Harmony harmony) =>
+        Backend.CanStart(typeof(T), _config, WriteLog) && Backend.Report(OnLoad(harmony), typeof(T), nameof(OnLoad), WriteLog);
 
-        foreach (var message in Backend.MissingOptionalFeatures(typeof(T)))
-            LogInfo(message);
-
-        foreach (var warning in _config?.ResetInvalidValues() ?? [])
-            LogWarn(warning);
-
-        return Report(OnLoad(harmony), nameof(OnLoad));
-    }
-
-    private bool RunReady() => Report(OnReady(), nameof(OnReady));
-
-    private static bool Report(bool success, string step)
-    {
-        if (!success)
-            LogError($"{step} failed");
-        return success;
-    }
+    private bool RunReady() => Backend.Report(OnReady(), typeof(T), nameof(OnReady), WriteLog);
 }

@@ -34,20 +34,8 @@
     <ItemGroup>
       <PluginFiles Include="$(TargetPath)" />
     </ItemGroup>
-  
-    <!-- <Copy SourceFiles="@(PluginFiles)" DestinationFolder="../out/" />
-    <Message Text="Copied plugin files to out dir" Importance="high" /> -->
-    
+
     <Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(GamePath)rml_libs/" Condition="'$(CopyToPlugins)' == 'true'" />
     <Message Text="Copied plugin files to $(GamePath)rml_libs/" Importance="high" Condition="'$(CopyToPlugins)' == 'true'" />
-  
-    <!-- <Copy SourceFiles="../out/UniModFramework.dll" DestinationFolder="$(LibTargetDir)" Condition="'$(CopyToPlugins)' == 'true'" />
-    <Message Text="Copied frooxengine lib to $(LibTargetDir)" Importance="high" Condition="'$(CopyToPlugins)' == 'true'" /> -->
-  
-    <!-- <Copy SourceFiles="..\..\out\InterprocessLib.BepisLoader_Extensions.dll" DestinationFolder="$(LibTargetDir)" Condition="'$(CopyToPlugins)' == 'true'" />
-    <Message Text="Copied bepisloader extensions to $(LibTargetDir)" Importance="high" Condition="'$(CopyToPlugins)' == 'true'" /> -->
-
-    <!-- <Exec Command="dotnet tool restore" WorkingDirectory="$(SolutionDir)" />
-    <Exec Command="dotnet tcli build" WorkingDirectory="$(SolutionDir)" /> -->
   </Target>
 </Project>

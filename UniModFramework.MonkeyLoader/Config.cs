@@ -60,34 +60,31 @@ internal interface IDefiningKeyFactory
 
 public partial class ConfigurationKey<T> : IDefiningKeyFactory
 {
-    public string Id => _id;
-    public T? Value => _configKey is null ? _defaultValue : _configKey.GetValue();
-    public T? DefaultValue => _defaultValue;
-    public string? Description => _description;
+    public string Id {get;}
+    public T? Value => _configKey is null ? DefaultValue : _configKey.GetValue();
+    public T? DefaultValue {get;}
+    public string? Description {get;}
     public event Action<T?>? OnChanged;
     private DefiningConfigKey<T>? _configKey;
-    private readonly string _id;
-    private readonly T? _defaultValue;
-    private readonly string? _description;
     public ConfigurationKey(string id, string? description = default, T? defaultValue = default, IValueValidator<T>? valueValidator = default, params string[] tags)
     {
-        _id = ConfigKeyRules.CheckDefinition(id, typeof(T));
-        _defaultValue = defaultValue;
-        _description = description;
+        Id = ConfigKeyRules.CheckDefinition(id, typeof(T));
+        DefaultValue = defaultValue;
+        Description = description;
         Validator = valueValidator;
         Tags = tags;
     }
     private partial void StoreValue(T? val)
     {
         if (_configKey is null)
-            throw new InvalidOperationException($"Config key [{_id}] can't be set before the config is loaded");
+            throw new InvalidOperationException($"Config key [{Id}] can't be set before the config is loaded");
         _configKey.SetValue(val!);
     }
     // Before the config is loaded the value is already the default
-    public partial void ResetToDefault() => _configKey?.Reset();
+    private partial void ResetValue() => _configKey?.Reset();
     IDefiningConfigKey IDefiningKeyFactory.CreateDefiningKey()
     {
-        _configKey = new(_id, _description, () => _defaultValue!, Tags.Contains(ConfigTags.Hidden));
+        _configKey = new(Id, Description, () => DefaultValue!, Tags.Contains(ConfigTags.Hidden));
         if (CreateValidator() is IConfigKeyValidator<T> validator)
             _configKey.Add(validator);
         _configKey.Changed += (sender, args) => OnChanged?.Invoke(_configKey.GetValue());
