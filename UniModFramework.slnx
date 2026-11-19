@@ -11,11 +11,14 @@
   <Project Path="UniModFramework.BepisLoader/UniModFramework.BepisLoader.csproj" />
   <Project Path="UniModFramework.MonkeyLoader/UniModFramework.MonkeyLoader.csproj" />
   
-  <Project Path="ExamplePrePatcher/UniModFramework.ExamplePrePatcher.csproj">
+  <Project Path="ExamplePrePatcher/UniModFramework.ExamplePrePatcher.csproj" />
+  <Project Path="ExampleMod/UniModFramework.ExampleMod.csproj" />
+
+  <Project Path="UniModFramework.Tests/UniModFramework.Tests.csproj">
     <BuildDependency Project="UniModFramework/UniModFramework.csproj" />
-  </Project>
-  <Project Path="ExampleMod/UniModFramework.ExampleMod.csproj">
-    <BuildDependency Project="UniModFramework/UniModFramework.csproj" />
+    <BuildDependency Project="UniModFramework.RML/UniModFramework.RML.csproj" />
+    <BuildDependency Project="UniModFramework.BepisLoader/UniModFramework.BepisLoader.csproj" />
+    <BuildDependency Project="UniModFramework.MonkeyLoader/UniModFramework.MonkeyLoader.csproj" />
   </Project>
 
 </Solution>

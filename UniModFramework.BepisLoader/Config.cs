@@ -2,106 +2,58 @@ using BepInEx.Configuration;
 
 namespace UniModFramework;
 
-public class Config
+internal interface IBindableKey
 {
-    
+    void Bind(ConfigFile file);
 }
 
-public class ConfigurationKey<T> : IConfigurationKey<T>
+public partial class ConfigurationKey<T> : IBindableKey
 {
-    public string Id => _configEntry!.Definition.Key;
-    public T? Value => _configEntry!.Value;
-    public T? DefaultValue => (T?)_configEntry!.DefaultValue;
-    public string? Description => _configEntry!.Description.Description;
-    public string[] Tags => _configEntry!.Description.Tags.OfType<string>().ToArray();
-    public IValueValidator<T>? Validator => (IValueValidator<T>?)_configEntry!.Description.AcceptableValues;
+    public string Id => _id;
+    public T? Value => _configEntry is null ? _defaultValue : _configEntry.Value;
+    public T? DefaultValue => _defaultValue;
+    public string? Description => _description;
     public event Action<T?>? OnChanged;
     private ConfigEntry<T>? _configEntry;
-    private string _id;
-    private T? _defaultValue;
-    private string? _description;
-    private IValueValidator<T>? _valueValidator;
-    private string[] _tags;
+    private readonly string _id;
+    private readonly T? _defaultValue;
+    private readonly string? _description;
     public ConfigurationKey(string id, string? description = default, T? defaultValue = default, IValueValidator<T>? valueValidator = default, params string[] tags)
     {
         _id = id;
-        _defaultValue = defaultValue ?? default;
+        _defaultValue = defaultValue;
         _description = description;
-        _valueValidator = valueValidator;
-        _tags = tags;
+        Validator = valueValidator;
+        Tags = tags;
     }
-    public void SetValue(T? val)
+    private partial void StoreValue(T? val)
     {
-        _configEntry!.Value = val!;
+        if (_configEntry is null)
+            throw new InvalidOperationException($"Config key [{_id}] can't be set before the config is loaded");
+        _configEntry.Value = val!;
     }
-    public T? GetValue()
+    void IBindableKey.Bind(ConfigFile file)
     {
-        return _configEntry!.Value;
-    }
-    internal void Init(ConfigFile file)
-    {
-        _configEntry = file.Bind("General", _id, _defaultValue!, new ConfigDescription(_description,
-                                                                                       (AcceptableValueBase?)_valueValidator,
-                                                                                       _tags)
-        );
+        _configEntry = file.Bind("General", _id, _defaultValue!, new ConfigDescription(_description, CreateAcceptableValues(), Tags));
         _configEntry.SettingChanged += (sender, args) => OnChanged?.Invoke(_configEntry.Value);
     }
-    public static implicit operator T?(ConfigurationKey<T> cfg) => cfg.GetValue();
-    public override string ToString() => $"{GetValue()}";
+    // BepisModSettings only shows sliders and dropdowns for BepInEx's own range and list types.
+    // BepInEx clamps out of range values and replaces values missing from the list with the first one.
+    private AcceptableValueBase? CreateAcceptableValues() => Validator switch
+    {
+        null => null,
+        IRangeValueValidator range => (AcceptableValueBase)Activator.CreateInstance(typeof(AcceptableValueRange<>).MakeGenericType(typeof(T)), range.Min, range.Max)!,
+        IListValueValidator list => (AcceptableValueBase)Activator.CreateInstance(typeof(AcceptableValueList<>).MakeGenericType(typeof(T)), [list.Values])!,
+        _ => new ValidatorAdapter<T>(Validator, _defaultValue),
+    };
 }
 
-public class FuncValueValidator<T> : AcceptableValueBase, IValueValidator<T>
+/// <summary>
+/// Lets BepInEx use any <see cref="IValueValidator{T}"/>. Invalid values are replaced with the default.
+/// </summary>
+internal class ValidatorAdapter<T>(IValueValidator<T> validator, T? defaultValue) : AcceptableValueBase(typeof(T))
 {
-    private Predicate<T?> _func;
-    private T? _defaultValue;
-    public FuncValueValidator(Predicate<T?> func) : base(typeof(T))
-    {
-        ArgumentNullException.ThrowIfNull(func);
-        _func = func;
-    }
-    internal void SetDefault(T? def)
-    {
-        _defaultValue = def;
-    }
-    public bool Validate(T? val)
-    {
-        return IsValid(val!);
-    }
-    public override object Clamp(object value)
-    {
-        if (IsValid(value))
-            return value;
-        else
-            return _defaultValue!;
-    }
-    public override bool IsValid(object value)
-    {
-        return _func((T?)value);
-    }
-    public override string ToDescriptionString()
-    {
-        return "Custom value validator";
-    }
-}
-
-public class RangeValueValidator<T> : AcceptableValueRange<T>, IValueValidator<T> where T : unmanaged, IComparable
-{
-    public RangeValueValidator(T min, T max) : base(min, max)
-    {
-    }
-    public bool Validate(T val)
-    {
-        return IsValid(val);
-    }
-}
-
-public class ListValueValidator<T> : AcceptableValueList<T>, IValueValidator<T> where T : IEquatable<T>
-{
-    public ListValueValidator(params T?[] values) : base(values!)
-    {
-    }
-    public bool Validate(T? val)
-    {
-        return IsValid(val);
-    }
+    public override object Clamp(object value) => IsValid(value) ? value : defaultValue!;
+    public override bool IsValid(object value) => ((IValueValidator)validator).Validate(value);
+    public override string ToDescriptionString() => "# Acceptable values: checked by the mod";
 }

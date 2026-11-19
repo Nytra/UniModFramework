@@ -2,6 +2,7 @@ using System.Reflection;
 using HarmonyLib;
 using MonkeyLoader.Configuration;
 using MonkeyLoader.Patching;
+using Mono.Cecil;
 
 namespace UniModFramework;
 
@@ -13,15 +14,17 @@ public abstract partial class UniPrePatcher<T, TConfig> : ConfiguredEarlyMonkey<
     // }
     protected override bool Prepare()
     {
+        // Keys are initialized before the saved values are read, so if reading them fails the section is still usable with defaults.
+        Config = new();
         try
         {
-            Config = ConfiguredEarlyMonkey<T, TConfig>.Config.LoadSection<TConfig>();
+            ConfiguredEarlyMonkey<T, TConfig>.Config.LoadSection(Config);
         }
-        catch (ConfigLoadException)
+        catch (ConfigLoadException ex)
         {
-            // Empty config, this is probably fine
+            LogWarn($"Failed to load config, using defaults: {ex.Message}");
         }
-        return OnInitialize();
+        return RunInitialize();
     }
     protected override bool Prepare(IEnumerable<PatchJob> patchJobs)
     {
@@ -34,32 +37,23 @@ public abstract partial class UniPrePatcher<T, TConfig> : ConfiguredEarlyMonkey<
     }
     protected override IEnumerable<PrePatchTarget> GetPrePatchTargets()
     {
+        var methods = AccessTools.GetDeclaredMethods(typeof(T));
+        var targetTypes = methods.SelectMany(m => m.GetCustomAttributes<TargetTypeAttribute>()).ToArray();
+        var assemblyNames = methods.SelectMany(m => m.GetCustomAttributes<TargetAssemblyAttribute>())
+                                   .Select(attr => attr.TargetAssembly.Name)
+                                   .Concat(targetTypes.Select(t => t.TargetAssembly.Name));
+
+        // MonkeyLoader doesn't implement PrePatchTarget.AllAvailable (it gives no patch jobs), so target every game assembly like MonkeyLoader loads them
+        if (methods.Any(m => m.GetCustomAttribute<TargetAllAssembliesAttribute>() is not null))
+            assemblyNames = assemblyNames.Concat(Directory.EnumerateFiles(MonkeyLoader.MonkeyLoader.GameAssemblyPath, "*.dll").Select(Path.GetFileNameWithoutExtension));
+
+        // Only one target per assembly, MonkeyLoader waits forever for an assembly that is already part of another patch job
         var set = new HashSet<PrePatchTarget>();
-
-        if (AccessTools.GetDeclaredMethods(typeof(T)).Any(m => m.GetCustomAttribute<TargetAllAssembliesAttribute>() is not null))
+        foreach (var assemblyName in assemblyNames.OfType<string>().Distinct(StringComparer.OrdinalIgnoreCase))
         {
-            LogInfo($"Targets all assemblies");
-            return PrePatchTarget.AllAvailable;
-        }
-
-        foreach (var targetType in AccessTools.GetDeclaredMethods(typeof(T)).Where(m => m.GetCustomAttribute<TargetTypeAttribute>() is not null))
-        {
-            var attr = targetType.GetCustomAttribute<TargetTypeAttribute>();
-            LogInfo($"attr: {attr!.TargetAssembly.Name}:{attr.TargetType}");
-            var ppt = new PrePatchTarget(new MonkeyLoader.AssemblyName(attr!.TargetAssembly.Name!), [attr.TargetType]);
-            LogInfo($"Adding prepatch target type: {ppt.Assembly.Name}:{string.Join(".", ppt.Types)}");
+            var ppt = new PrePatchTarget(new MonkeyLoader.AssemblyName(assemblyName), targetTypes.Where(t => IsAssembly(t.TargetAssembly, assemblyName)).Select(t => t.TargetType));
+            LogInfo($"Adding prepatch target: {ppt.Assembly.Name}:{string.Join(", ", ppt.Types)}");
             set.Add(ppt);
-            //yield return ppt;
-        }
-
-        foreach (var targetAsm in AccessTools.GetDeclaredMethods(typeof(T)).Where(m => m.GetCustomAttribute<TargetAssemblyAttribute>() is not null))
-        {
-            var attr = targetAsm.GetCustomAttribute<TargetAssemblyAttribute>();
-            LogInfo($"attr: {attr!.TargetAssembly.Name}");
-            var ppt = new PrePatchTarget(new MonkeyLoader.AssemblyName(attr!.TargetAssembly.Name!));
-            LogInfo($"Adding prepatch target assembly: {ppt.Assembly.Name}");
-            set.Add(ppt);
-            //yield return ppt;
         }
 
         return set;
@@ -67,40 +61,56 @@ public abstract partial class UniPrePatcher<T, TConfig> : ConfiguredEarlyMonkey<
     protected override bool Patch(PatchJob patchJob)
     {
         LogInfo($"Patch job: {patchJob.Target.Assembly.Name}.{string.Join(".", patchJob.Target.Types)}");
-        if (patchJob.Target.Types.Count() == 0)
+        var assemblyName = patchJob.Target.Assembly.Name;
+        foreach (var method in AccessTools.GetDeclaredMethods(typeof(T)))
         {
-            LogInfo($"target assembly");
-            var method = AccessTools.GetDeclaredMethods(typeof(T)).FirstOrDefault(m => m.GetCustomAttribute<TargetAssemblyAttribute>() is TargetAssemblyAttribute attr && attr.TargetAssembly.Name == patchJob.Target.Assembly.Name);
-            method?.Invoke(this, [patchJob.Assembly]);
-        }
-        else
-        {
-            LogInfo($"target type");
-            foreach (var type in patchJob.Target.Types)
+            if (method.GetCustomAttribute<TargetAllAssembliesAttribute>() is not null
+                || method.GetCustomAttributes<TargetAssemblyAttribute>().Any(attr => IsAssembly(attr.TargetAssembly, assemblyName)))
+                RunPatchMethod(method, patchJob, patchJob.Assembly);
+
+            foreach (var attr in method.GetCustomAttributes<TargetTypeAttribute>())
             {
-                LogInfo($"type: {type}");
-                var method = AccessTools.GetDeclaredMethods(typeof(T)).FirstOrDefault(m => m.GetCustomAttribute<TargetTypeAttribute>() is TargetTypeAttribute attr && attr.TargetAssembly.Name == patchJob.Target.Assembly.Name && attr.TargetType == type);
-                method?.Invoke(this, [patchJob[type]]);
+                if (IsAssembly(attr.TargetAssembly, assemblyName) && patchJob.TryGetTypeDefinition(attr.TargetType, out var type))
+                    RunPatchMethod(method, patchJob, type);
             }
         }
         return true;
     }
+    /// <summary>
+    /// MonkeyLoader compares assembly names ignoring case.
+    /// </summary>
+    private static bool IsAssembly(System.Reflection.AssemblyName target, string assemblyName) => string.Equals(target.Name, assemblyName, StringComparison.OrdinalIgnoreCase);
+    /// <summary>
+    /// Matches BepInEx: an optional second parameter gets the target file name,
+    /// and returning void or true reports changes (including replacing an assembly taken by ref).
+    /// </summary>
+    private void RunPatchMethod(MethodInfo method, PatchJob patchJob, object target)
+    {
+        var args = new object?[method.GetParameters().Length];
+        args[0] = target;
+        if (args.Length > 1)
+            args[1] = $"{patchJob.Target.Assembly.Name}.dll";
+
+        if (method.Invoke(method.IsStatic ? null : this, args) is false)
+            return;
+
+        patchJob.Changes = true;
+        if (args[0] is AssemblyDefinition assembly)
+            patchJob.Assembly = assembly;
+    }
     protected override bool Validate(IEnumerable<PatchJob> patchJobs)
     {
-        return OnFinalize();
+        return RunFinalize();
         //return base.Validate(patchJobs);
     }
-    public UniPrePatcher()
+    private static partial void WriteLog(LogLevel level, string message)
     {
-        _infoLogger = (string str) => Logger.Info(() => str);
-        _featureChecker = (Feature feature) =>
+        switch (level)
         {
-            switch (feature)
-            {
-                case Feature.PrePatching:
-                    return true;
-            }
-            return false;
-        };
+            case LogLevel.Debug: Logger?.Debug(() => message); break;
+            case LogLevel.Info: Logger?.Info(() => message); break;
+            case LogLevel.Warn: Logger?.Warn(() => message); break;
+            case LogLevel.Error: Logger?.Error(() => message); break;
+        }
     }
 }

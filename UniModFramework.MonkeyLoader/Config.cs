@@ -1,152 +1,107 @@
-using HarmonyLib;
-//using MonkeyLoader.Components;
 using MonkeyLoader.Configuration;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace UniModFramework;
 
-public class Config : ConfigSection
+public partial class Config : ConfigSection
 {
+    private readonly List<string> _rejectedValues = [];
+
     public override string Id => "General";
 
     public override Version Version => new Version(1, 0, 0);
+
     protected override IEnumerable<IDefiningConfigKey> GetConfigKeys()
     {
-        var set = new HashSet<IDefiningConfigKey>();
-        foreach (var cfgKeyField in AccessTools.GetDeclaredFields(GetType()).Where(f => f.FieldType.IsGenericType && f.FieldType.GetGenericTypeDefinition() == typeof(ConfigurationKey<>)))
+        return ConfigurationKeys.OfType<IDefiningKeyFactory>().Select(key => key.CreateDefiningKey()).ToArray();
+    }
+
+    // MonkeyLoader stops loading at the first value that fails validation,
+    // so invalid values are dropped first and those keys keep their default.
+    protected override void OnLoad(JObject source, JsonSerializer jsonSerializer)
+    {
+        foreach (var key in ConfigurationKeys)
         {
-            var cfgKey = cfgKeyField.GetValue(this);
-            var initMethod = AccessTools.Method(cfgKey!.GetType(), "Init");
-            initMethod.Invoke(cfgKey, []);
-            var keyField = AccessTools.Field(cfgKey.GetType(), "_configKey");
-            set.Add((IDefiningConfigKey)keyField.GetValue(cfgKey)!);
+            if (key.Validator is null || source[key.Id] is not JToken token)
+                continue;
+
+            object? value;
+            try
+            {
+                value = token.ToObject(key.ValueType, jsonSerializer);
+            }
+            catch (Exception)
+            {
+                continue; // MonkeyLoader reports values it can't read
+            }
+
+            if (key.Validator.Validate(value))
+                continue;
+
+            source.Remove(key.Id);
+            _rejectedValues.Add($"Config key [{key.Id}] had invalid value {token}, using the default");
         }
-        return set;
+
+        base.OnLoad(source, jsonSerializer);
+    }
+
+    partial void AddLoaderWarnings(List<string> warnings)
+    {
+        warnings.AddRange(_rejectedValues);
+        _rejectedValues.Clear();
     }
 }
 
-public class ConfigurationKey<T> : IConfigurationKey<T>
+internal interface IDefiningKeyFactory
 {
-    public string Id => _configKey!.Id;
-    public T? Value => _configKey!.GetValue();
-    public T? DefaultValue
-    {
-        get
-        {
-            _configKey!.TryComputeDefault(out T? defaultValue);
-            return defaultValue;
-        }
-    }
-    public string? Description => _configKey!.Description;
-    public string[] Tags => _tags;
-    public IValueValidator<T>? Validator
-    {
-        get
-        {
-            if (_configKey!.Components.TryGet<IConfigKeyValidator<T>>(out var comp))
-                return (IValueValidator<T>)comp;
-            else
-                return null;
-        }
-    }
+    IDefiningConfigKey CreateDefiningKey();
+}
+
+public partial class ConfigurationKey<T> : IDefiningKeyFactory
+{
+    public string Id => _id;
+    public T? Value => _configKey is null ? _defaultValue : _configKey.GetValue();
+    public T? DefaultValue => _defaultValue;
+    public string? Description => _description;
     public event Action<T?>? OnChanged;
     private DefiningConfigKey<T>? _configKey;
-    private string _id;
-    private T? _defaultValue;
-    private string? _description;
-    private IValueValidator<T>? _valueValidator;
-    private string[] _tags;
+    private readonly string _id;
+    private readonly T? _defaultValue;
+    private readonly string? _description;
     public ConfigurationKey(string id, string? description = default, T? defaultValue = default, IValueValidator<T>? valueValidator = default, params string[] tags)
     {
         _id = id;
-        _defaultValue = defaultValue ?? default;
+        _defaultValue = defaultValue;
         _description = description;
-        _valueValidator = valueValidator;
-        _tags = tags;
+        Validator = valueValidator;
+        Tags = tags;
     }
-    public void SetValue(T? val)
+    private partial void StoreValue(T? val)
     {
-        _configKey!.SetValue(val!);
+        if (_configKey is null)
+            throw new InvalidOperationException($"Config key [{_id}] can't be set before the config is loaded");
+        _configKey.SetValue(val!);
     }
-    public T? GetValue()
+    IDefiningConfigKey IDefiningKeyFactory.CreateDefiningKey()
     {
-        return _configKey!.GetValue();
-    }
-    internal void Init()
-    {
-        _configKey = new(_id, _description, () => _defaultValue!, _tags.Contains("Hidden"));
-        if (_valueValidator is not null)
-            _configKey.Add((IConfigKeyValidator<T>)_valueValidator);
+        _configKey = new(_id, _description, () => _defaultValue!, Tags.Contains(ConfigTags.Hidden));
+        if (Validator is not null)
+            _configKey.Add(new ValidatorComponent<T>(Validator));
         _configKey.Changed += (sender, args) => OnChanged?.Invoke(_configKey.GetValue());
+        return _configKey;
     }
-    public static implicit operator T?(ConfigurationKey<T> cfg) => cfg.GetValue();
-    public override string ToString() => $"{GetValue()}";
 }
 
-public class FuncValueValidator<T> : IConfigKeyValidator<T>, IValueValidator<T>
+/// <summary>
+/// Lets MonkeyLoader use any <see cref="IValueValidator{T}"/>.
+/// </summary>
+internal class ValidatorComponent<T>(IValueValidator<T> validator) : IConfigKeyValidator<T>
 {
-    private Predicate<T?> _func;
-    public FuncValueValidator(Predicate<T?> func)
-    {
-        ArgumentNullException.ThrowIfNull(func);
-        _func = func;
-    }
-
+    // Invalid values from the config file are handled by Config.OnLoad
     public void Initialize(IDefiningConfigKey<T> entity)
     {
-        if (entity.HasValue && entity.TryGetValue(out var value) && !IsValid(value))
-            throw new InvalidOperationException($"Value for key [{entity.Id}] did not pass validation!");
     }
 
-    public bool IsValid(T? value)
-    {
-        return _func(value);
-    }
-
-    public bool Validate(T? val) => IsValid(val);
-}
-
-public class RangeValueValidator<T> : IConfigKeyValidator<T>, IValueValidator<T> where T : unmanaged, IComparable
-{
-    private T _min;
-    private T _max;
-    public RangeValueValidator(T min, T max)
-    {
-        _min = min;
-        _max = max;
-    }
-
-    public void Initialize(IDefiningConfigKey<T> entity)
-    {
-        if (entity.HasValue && entity.TryGetValue(out var value) && !IsValid(value))
-            throw new InvalidOperationException($"Value for key [{entity.Id}] did not pass validation!");
-    }
-
-    public bool IsValid(T value)
-    {
-        return value.CompareTo(_min) >= 0 && value.CompareTo(_max) <= 0;
-    }
-
-    public bool Validate(T val) => IsValid(val);
-}
-
-public class ListValueValidator<T> : IConfigKeyValidator<T>, IValueValidator<T> where T : IEquatable<T?>
-{
-    private T?[] _acceptableValues;
-    public ListValueValidator(params T?[] values)
-    {
-        _acceptableValues = values;
-    }
-
-    public void Initialize(IDefiningConfigKey<T> entity)
-    {
-        if (entity.HasValue && entity.TryGetValue(out var value) && !IsValid(value))
-            throw new InvalidOperationException($"Value for key [{entity.Id}] did not pass validation!");
-    }
-
-    public bool IsValid(T? value)
-    {
-        return _acceptableValues.Contains(value);
-    }
-
-    public bool Validate(T? val) => IsValid(val);
+    public bool IsValid(T? value) => validator.Validate(value);
 }

@@ -2,13 +2,16 @@ using System.Reflection;
 
 namespace UniModFramework;
 
+// The values are internal, mods only use the constructors and each loader exposes them differently.
+
+[AttributeUsage(AttributeTargets.Class)]
 public class MetadataAttribute : Attribute
 {
-    public string GUID;
-    public string Name;
-    public string Version;
-    public string Author;
-    public string Link;
+    internal string GUID;
+    internal string Name;
+    internal string Version;
+    internal string Author;
+    internal string Link;
     public MetadataAttribute(string GUID, string Name, string Version, string Author, string Link)
     {
         this.GUID = GUID;
@@ -19,11 +22,12 @@ public class MetadataAttribute : Attribute
     }
 }
 
+[AttributeUsage(AttributeTargets.Class)]
 public class PrePatcherMetadataAttribute : Attribute
 {
-    public string GUID;
-    public string Name;
-    public string Version;
+    internal string GUID;
+    internal string Name;
+    internal string Version;
     public PrePatcherMetadataAttribute(string GUID, string Name, string Version)
     {
         this.GUID = GUID;
@@ -32,9 +36,10 @@ public class PrePatcherMetadataAttribute : Attribute
     }
 }
 
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
 public class TargetAssemblyAttribute : Attribute
 {
-    public AssemblyName TargetAssembly;
+    internal AssemblyName TargetAssembly;
 
     public TargetAssemblyAttribute(string assemblyName)
     {
@@ -45,6 +50,7 @@ public class TargetAssemblyAttribute : Attribute
     }
 }
 
+[AttributeUsage(AttributeTargets.Method)]
 public class TargetAllAssembliesAttribute : Attribute
 {
 
@@ -53,10 +59,11 @@ public class TargetAllAssembliesAttribute : Attribute
     }
 }
 
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
 public class TargetTypeAttribute : Attribute
 {
-    public AssemblyName TargetAssembly;
-    public string TargetType;
+    internal AssemblyName TargetAssembly;
+    internal string TargetType;
 
     public TargetTypeAttribute(string assemblyName, string typeName)
     {

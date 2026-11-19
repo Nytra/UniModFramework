@@ -7,36 +7,30 @@ namespace UniModFramework;
 
 public abstract partial class UniMod<T, TConfig> : ResoniteMod where T : UniMod<T, TConfig>, new() where TConfig : Config, new()
 {
-    public override string Name => typeof(T).GetCustomAttribute<MetadataAttribute>()!.Name;
-    public override string Version => typeof(T).GetCustomAttribute<MetadataAttribute>()!.Version;
-    public override string Author => typeof(T).GetCustomAttribute<MetadataAttribute>()!.Author;
-    public override string Link => typeof(T).GetCustomAttribute<MetadataAttribute>()!.Link;
+    private static MetadataAttribute Metadata => typeof(T).GetCustomAttribute<MetadataAttribute>()!;
+    public override string Name => Metadata.Name;
+    public override string Version => Metadata.Version;
+    public override string Author => Metadata.Author;
+    public override string Link => Metadata.Link;
     public override void OnEngineInit()
     {
-        var harmony = new Harmony(typeof(T).GetCustomAttribute<MetadataAttribute>()!.GUID);
-        OnLoad(harmony);
-        Engine.Current.OnReady += () => OnReady();
+        if (RunLoad(new Harmony(Metadata.GUID)))
+            Engine.Current.OnReady += () => RunReady();
     }
     public override void DefineConfiguration(ModConfigurationDefinitionBuilder builder)
     {
         Config = new();
-        foreach (var cfgKeyField in AccessTools.GetDeclaredFields(typeof(TConfig)).Where(f => f.FieldType.IsGenericType && f.FieldType.GetGenericTypeDefinition() == typeof(ConfigurationKey<>)))
-        {
-            var cfgKey = cfgKeyField.GetValue(Config);
-            builder.Key((ModConfigurationKey)cfgKey!);
-        }
+        foreach (var key in Config.ConfigurationKeys.OfType<ModConfigurationKey>())
+            builder.Key(key);
     }
-    public UniMod()
+    private static partial void WriteLog(LogLevel level, string message)
     {
-        _infoLogger = (string str) => Msg(str);
-        _featureChecker = (Feature feature) =>
+        switch (level)
         {
-            switch (feature)
-            {
-                case Feature.PrePatching:
-                    return false;
-            }
-            return false;
-        };
+            case LogLevel.Debug: Debug(message); break;
+            case LogLevel.Info: Msg(message); break;
+            case LogLevel.Warn: Warn(message); break;
+            case LogLevel.Error: Error(message); break;
+        }
     }
 }

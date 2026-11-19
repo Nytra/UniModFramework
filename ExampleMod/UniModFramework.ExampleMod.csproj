@@ -9,7 +9,6 @@
     <RootNamespace>UniModFramework.ExampleMod</RootNamespace>
     <GeneratePackageOnBuild>$(CopyToPlugins)</GeneratePackageOnBuild>
     <PackageOutputPath>$(GamePath)MonkeyLoader/Mods/</PackageOutputPath>
-    <BepInExProfileDir>/home/nytra/.local/share/com.kesomannen.gale/resonite/profiles/Default/</BepInExProfileDir>
   </PropertyGroup>
   
   <!-- NuGet fallback stripped game references -->
@@ -34,15 +33,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="UniModFramework">
-      <HintPath>../out/UniModFramework.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <!-- <Reference Include="0Harmony">
-      <HintPath>$(GamePath)rml_libs/0Harmony.dll</HintPath>
-      <Private>False</Private>
-    </Reference> -->
-    <PackageReference Include=" Lib.Harmony.Thin" Version="2.4.2" PrivateAssets="all" />
+    <!-- The installed loader backend provides UniModFramework.dll, so it isn't copied or added as a package dependency.
+         Harmony comes with it. -->
+    <ProjectReference Include="../UniModFramework/UniModFramework.csproj" Private="false" PrivateAssets="all" />
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">

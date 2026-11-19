@@ -8,11 +8,19 @@
     <Product>UniModFramework</Product>
     <RootNamespace>UniModFramework</RootNamespace>
     <AssemblyName>UniModFramework</AssemblyName>
+    <!-- Mods only compile against this, each loader backend provides the implementation -->
+    <ProduceOnlyReferenceAssembly>true</ProduceOnlyReferenceAssembly>
+    <!-- dotnet pack fails if the API breaks mods built against the baseline version.
+         Set PackageValidationBaselineVersion to the last version published to NuGet. -->
+    <EnablePackageValidation>true</EnablePackageValidation>
+    <!-- <PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion> -->
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Include="../Shared/*.cs"  />
-    <PackageReference Include=" Lib.Harmony.Thin" Version="2.4.2" PrivateAssets="all" />
+    <!-- Mods compile against this, each loader provides its own Harmony at runtime.
+         2.3.6 is the newest Harmony whose API HarmonyX (BepisLoader) fully has, so mods work on every loader. -->
+    <PackageReference Include="Lib.Harmony.Ref" Version="2.3.6" />
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">

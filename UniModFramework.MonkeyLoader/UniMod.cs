@@ -7,29 +7,27 @@ public abstract partial class UniMod<T, TConfig> : ConfiguredResoniteMonkey<T, T
 {
     protected override bool OnLoaded()
     {
-        // Maybe update the _infoLogger here so it logs to the game log?
+        // Keys are initialized before the saved values are read, so if reading them fails the section is still usable with defaults.
+        Config = new();
         try
         {
-            Config = ConfiguredResoniteMonkey<T, TConfig>.Config.LoadSection<TConfig>();
+            ConfiguredResoniteMonkey<T, TConfig>.Config.LoadSection(Config);
         }
-        catch (ConfigLoadException)
+        catch (ConfigLoadException ex)
         {
-            // Empty config, this is probably fine
+            LogWarn($"Failed to load config, using defaults: {ex.Message}");
         }
-        return OnLoad(Harmony);
+        return RunLoad(Harmony);
     }
-    protected override bool OnEngineReady() => OnReady();
-    public UniMod()
+    protected override bool OnEngineReady() => RunReady();
+    private static partial void WriteLog(LogLevel level, string message)
     {
-        _infoLogger = (string str) => Logger.Info(() => str);
-        _featureChecker = (Feature feature) =>
+        switch (level)
         {
-            switch (feature)
-            {
-                case Feature.PrePatching:
-                    return true;
-            }
-            return false;
-        };
+            case LogLevel.Debug: Logger?.Debug(() => message); break;
+            case LogLevel.Info: Logger?.Info(() => message); break;
+            case LogLevel.Warn: Logger?.Warn(() => message); break;
+            case LogLevel.Error: Logger?.Error(() => message); break;
+        }
     }
 }

@@ -4,12 +4,18 @@ namespace UniModFramework;
 
 public abstract partial class UniMod<T, TConfig> where T : UniMod<T, TConfig>, new() where TConfig : Config, new()
 {
+    private static TConfig? _config;
+
     /// <summary>
-    /// The config for this UniMod.
+    /// The config for this UniMod. Available from <see cref="OnLoad"/> onwards.
     /// </summary>
-    protected static TConfig? Config = null;
-    private static Func<Feature, bool>? _featureChecker = null;
-    private Action<string>? _infoLogger = null;
+#pragma warning disable CS0109 // Only some loaders have a Config member to hide
+    protected static new TConfig Config
+#pragma warning restore CS0109
+    {
+        get => _config ?? throw new InvalidOperationException($"The config of {typeof(T).Name} was used before the mod was loaded");
+        private set => _config = value;
+    }
 
     /// <summary>
     /// Called when the mod is first loaded. This may happen before the game itself is loaded.
@@ -19,21 +25,59 @@ public abstract partial class UniMod<T, TConfig> where T : UniMod<T, TConfig>, n
     protected abstract bool OnLoad(Harmony harmony);
 
     /// <summary>
-    /// Checks if the modding environment has certain features.
-    /// </summary>
-    /// <param name="feature">The feature to check for.</param>
-    /// <returns>Whether the feature is available.</returns>
-    protected static bool HasFeature(Feature feature) => _featureChecker?.Invoke(feature) ?? false;
-
-    /// <summary>
-    /// Attempts to send an info message to the log (if available).
-    /// </summary>
-    /// <param name="msg">The message to send.</param>
-    protected void LogInfo(string msg) => _infoLogger?.Invoke(msg);
-
-    /// <summary>
     /// Called when the game is ready.
     /// </summary>
     /// <returns>Whether the patching was successful.</returns>
     protected virtual bool OnReady() => true;
+
+    /// <summary>
+    /// Checks if the modding environment has certain features.
+    /// </summary>
+    /// <param name="feature">The feature to check for.</param>
+    /// <returns>Whether the feature is available.</returns>
+    protected static bool HasFeature(Feature feature) => Backend.HasFeature(feature);
+
+    /// <summary>
+    /// Sends a message to the mod loader's log.
+    /// </summary>
+    /// <param name="msg">The message to send.</param>
+    protected static void LogDebug(string msg) => WriteLog(LogLevel.Debug, msg);
+
+    /// <inheritdoc cref="LogDebug"/>
+    protected static void LogInfo(string msg) => WriteLog(LogLevel.Info, msg);
+
+    /// <inheritdoc cref="LogDebug"/>
+    protected static void LogWarn(string msg) => WriteLog(LogLevel.Warn, msg);
+
+    /// <inheritdoc cref="LogDebug"/>
+    protected static void LogError(string msg) => WriteLog(LogLevel.Error, msg);
+
+    private static partial void WriteLog(LogLevel level, string message);
+
+    /// <summary>
+    /// Called by the backend once the config is loaded.
+    /// </summary>
+    /// <returns>Whether the mod loaded and should get <see cref="OnReady"/>.</returns>
+    private bool RunLoad(Harmony harmony)
+    {
+        if ((Backend.CheckVersion(typeof(T)) ?? Backend.CheckFeatures(typeof(T))) is string error)
+        {
+            LogError(error);
+            return false;
+        }
+
+        foreach (var warning in _config?.ResetInvalidValues() ?? [])
+            LogWarn(warning);
+
+        return Report(OnLoad(harmony), nameof(OnLoad));
+    }
+
+    private bool RunReady() => Report(OnReady(), nameof(OnReady));
+
+    private static bool Report(bool success, string step)
+    {
+        if (!success)
+            LogError($"{step} failed");
+        return success;
+    }
 }
