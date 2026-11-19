@@ -44,8 +44,8 @@
 
   <ItemGroup>
     <Compile Include="../Shared/*.cs"  />
-    <Compile Include="../UniModFramework/UniMod.cs"  />
-    <Compile Include="../UniModFramework/UniPrePatcher.cs"  />
+    <!-- Replaced by this project's Attributes.cs, which builds on BepInEx's attributes -->
+    <Compile Remove="../Shared/Attributes.cs"  />
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">

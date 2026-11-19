@@ -4,8 +4,7 @@ NOTE: This is still being developed and there may be breaking changes!
 
 Mods are compiled against the `UniModFramework` project, which only builds a reference assembly. Each loader has its own backend project (`UniModFramework.RML`, `UniModFramework.MonkeyLoader`, `UniModFramework.BepisLoader`) that builds a `UniModFramework.dll` with the same types and members on top of that loader's API, and the user installs the backend for their loader.
 
-- `Shared/` is compiled into every project: the config interfaces, validators, key discovery and the loader-independent half of `ConfigurationKey`.
-- `UniModFramework/UniMod.cs`, `UniPrePatcher.cs` and `Attributes.cs` are compiled into the backends too. Each backend adds its loader-specific parts with `partial` classes and methods (`StoreValue`, `WriteLog`, `Backend.HasFeature`), so a backend missing one doesn't compile.
+- `Shared/` is compiled into every project: `UniMod`, `UniPrePatcher`, the attributes, the config interfaces and validators, key discovery and the loader-independent half of `ConfigurationKey`. Each backend adds its loader-specific parts with `partial` classes and methods (`StoreValue`, `ResetToDefault`, `WriteLog`, `Backend.HasFeature`), so a backend missing one doesn't compile. The BepisLoader backend replaces `Shared/Attributes.cs` with its own, built on BepInEx's attributes.
 - `UniModFramework/Backend.cs` and `Config.cs` are stubs only used by the reference assembly.
 
 Every public or protected member of the reference assembly must also exist in each backend (declared or inherited), or mods fail at runtime. `ApiCompatibilityTests` checks this.

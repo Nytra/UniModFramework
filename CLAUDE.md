@@ -20,7 +20,7 @@ Use `-p:CopyToPlugins=false` so test builds don't copy into the game or Gale pro
 
 - Every public or protected member of the reference project must exist in each backend, declared or inherited, or mods built against it fail at runtime. `ApiCompatibilityTests` checks this against the built DLLs.
 - Don't remove or change public members once a version is published. Mark them `[Obsolete]` and add new ones. Package validation enforces this once `PackageValidationBaselineVersion` is set.
-- Code that is the same for every loader goes in `Shared/` or the shared `UniModFramework/UniMod.cs`, `UniPrePatcher.cs`, `Attributes.cs`. Loader-specific parts are `partial` classes and methods in each backend, so a missing implementation is a compile error.
+- Code that is the same for every loader goes in `Shared/`, which every project compiles. A backend that needs its own version of a file excludes it explicitly (like BepisLoader with `Attributes.cs`). Loader-specific parts are `partial` classes and methods in each backend, so a missing implementation is a compile error. `UniModFramework/` only holds the reference assembly's stubs.
 - Follow the design below, and check loader behaviour against the loader's source, not assumptions. Source repos:
   - MonkeyLoader: https://github.com/MonkeyModdingTroop/MonkeyLoader (the NuGet package used is 0.29.0)
   - ResoniteModLoader: https://github.com/resonite-modding-group/ResoniteModLoader
