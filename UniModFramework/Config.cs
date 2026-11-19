@@ -10,7 +10,7 @@ public partial class ConfigurationKey<T>
     public event Action<T?>? OnChanged;
     public ConfigurationKey(string id, string? description = default, T? defaultValue = default, IValueValidator<T>? valueValidator = default, params string[] tags)
     {
-        Id = id;
+        Id = ConfigKeyRules.CheckDefinition(id, typeof(T));
         Description = description;
         Value = DefaultValue = defaultValue;
         Validator = valueValidator;

@@ -14,7 +14,7 @@ public partial class ConfigurationKey<T> : ModConfigurationKey<T>
         }
     }
     public new event Action<T?>? OnChanged;
-    public ConfigurationKey(string id, string? description = default, T? defaultValue = default, IValueValidator<T>? valueValidator = default, params string[] tags) : base(id, description, () => defaultValue ?? default!, tags.Contains(ConfigTags.Hidden), valueValidator is null ? null : (val) => valueValidator.Validate(val))
+    public ConfigurationKey(string id, string? description = default, T? defaultValue = default, IValueValidator<T>? valueValidator = default, params string[] tags) : base(ConfigKeyRules.CheckDefinition(id, typeof(T)), description, () => defaultValue ?? default!, tags.Contains(ConfigTags.Hidden), valueValidator is null ? null : (val) => valueValidator.Validate(val))
     {
         base.OnChanged += (val) => OnChanged?.Invoke(Value);
         Tags = tags;
@@ -24,5 +24,9 @@ public partial class ConfigurationKey<T> : ModConfigurationKey<T>
     private partial void StoreValue(T? val) => Value = val;
     // RML resets keys by removing their value through ModConfiguration.Unset, which keys can't reach.
     // Setting the default gives the same value, but the config file stores it.
-    public partial void ResetToDefault() => Value = DefaultValue;
+    public partial void ResetToDefault()
+    {
+        if (!EqualityComparer<T?>.Default.Equals(Value, DefaultValue))
+            Value = DefaultValue;
+    }
 }

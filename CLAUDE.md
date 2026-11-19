@@ -45,6 +45,12 @@ Decisions made with these:
 | Pre-patching | full | most of BepInEx's model | none | BepInEx's model (`[TargetAllAssemblies]`, the optional second parameter, `void`/`bool` returns), emulated on MonkeyLoader. A `Feature` because RML has none. |
 | Sliders for range validators | BepisModSettings, via `AcceptableValueRange` | MonkeyLoader's settings, via `IConfigKeyRange<T>` | ResoniteModSettings, only for mod-class fields with `FrooxEngine.RangeAttribute` | Use each loader's way. Not possible on RML yet, see open items. |
 | Dropdowns for list validators | BepisModSettings, via `AcceptableValueList` | enums only | enums only | Only on BepisLoader. |
+| Key ids | rejects `= \n \t \ " ' [ ]` and surrounding whitespace | anything | anything | BepInEx's rules on every loader, checked when the key is created (`ConfigKeyRules`). |
+| Value types | string, bool, numbers, decimal, enums, plus Resonite's engine primitives (`GenericTypesAttribute` group `EnginePrimitives`, e.g. `float3`, `colorX`, `Uri`, `DateTime`), which the BepisLoader shim adds | anything JSON can store | anything JSON can store | BepisLoader's set on every loader, checked when the key is created. Supporting more types on BepisLoader (e.g. by storing them as JSON text) was considered and left for when mods need it. |
+| `OnChanged` when setting the same value | not fired | not fired | fired | Not fired: `TrySetValue` and `ResetToDefault` skip unchanged values. |
+| Description | required (`ConfigDescription` throws on `null`) | optional | optional | Optional, the BepisLoader backend passes `""`. |
+| `null` strings | saved as `""`, so `null` comes back as `""` after a restart | kept | kept | `null` and `""` mean the same for string keys, mods shouldn't rely on the difference. |
+| When changes are saved | on every set | at shutdown | at shutdown (`AutoSave`) | Left to the loaders. All three can save explicitly, so a `Config.Save()` could be added if needed. |
 
 ## Loader behaviour
 

@@ -58,6 +58,48 @@ public class ConfigTests
     }
 
     [Fact]
+    public void Setting_the_same_value_does_not_fire_on_changed()
+    {
+        var key = new ConfigurationKey<int>("Key", defaultValue: 1);
+        var changes = new List<int>();
+        key.OnChanged += changes.Add;
+
+        key.SetValue(1);
+        key.SetValue(2);
+        key.SetValue(2);
+
+        Assert.Equal([2], changes);
+    }
+
+    [Theory]
+    [InlineData("Has=Equals")]
+    [InlineData("Has[Bracket]")]
+    [InlineData("Has\"Quote")]
+    [InlineData("Has\\Backslash")]
+    [InlineData(" Padded ")]
+    public void Ids_that_BepInEx_rejects_are_rejected_everywhere(string id)
+    {
+        Assert.Throws<ArgumentException>(() => new ConfigurationKey<int>(id));
+    }
+
+    private enum SomeEnum { A, B }
+
+    [Fact]
+    public void Types_BepInEx_supports_are_allowed()
+    {
+        _ = new ConfigurationKey<string>("String");
+        _ = new ConfigurationKey<decimal>("Decimal");
+        _ = new ConfigurationKey<SomeEnum>("Enum");
+    }
+
+    [Fact]
+    public void Types_BepInEx_does_not_support_are_rejected_everywhere()
+    {
+        Assert.Throws<ArgumentException>(() => new ConfigurationKey<List<string>>("List"));
+        Assert.Throws<ArgumentException>(() => new ConfigurationKey<int?>("Nullable"));
+    }
+
+    [Fact]
     public void Reset_to_default_sets_the_default()
     {
         IConfigurationKey key = new ConfigurationKey<int>("Key", defaultValue: 1);

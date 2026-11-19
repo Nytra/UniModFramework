@@ -20,7 +20,7 @@ public partial class ConfigurationKey<T> : IBindableKey
     private readonly string? _description;
     public ConfigurationKey(string id, string? description = default, T? defaultValue = default, IValueValidator<T>? valueValidator = default, params string[] tags)
     {
-        _id = id;
+        _id = ConfigKeyRules.CheckDefinition(id, typeof(T));
         _defaultValue = defaultValue;
         _description = description;
         Validator = valueValidator;
@@ -40,7 +40,8 @@ public partial class ConfigurationKey<T> : IBindableKey
     }
     void IBindableKey.Bind(ConfigFile file)
     {
-        _configEntry = file.Bind("General", _id, _defaultValue!, new ConfigDescription(_description, CreateAcceptableValues(), Tags));
+        // ConfigDescription doesn't allow a null description
+        _configEntry = file.Bind("General", _id, _defaultValue!, new ConfigDescription(_description ?? "", CreateAcceptableValues(), Tags));
         _configEntry.SettingChanged += (sender, args) => OnChanged?.Invoke(_configEntry.Value);
     }
     // BepisModSettings only shows sliders and dropdowns for BepInEx's own range and list types.

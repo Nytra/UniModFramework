@@ -129,7 +129,9 @@ public partial class ConfigurationKey<T> : IConfigurationKey<T>
     {
         if (Validator?.Validate(val) == false)
             return false;
-        StoreValue(val);
+        // RML would fire OnChanged even if the value didn't change, MonkeyLoader and BepInEx don't
+        if (!EqualityComparer<T?>.Default.Equals(Value, val))
+            StoreValue(val);
         return true;
     }
     /// <inheritdoc/>
@@ -140,6 +142,47 @@ public partial class ConfigurationKey<T> : IConfigurationKey<T>
     private partial void StoreValue(T? val);
     public static implicit operator T?(ConfigurationKey<T> cfg) => cfg.GetValue();
     public override string ToString() => $"{GetValue()}";
+}
+
+/// <summary>
+/// Keys must work on every loader, so they follow the strictest loader's rules, which are BepInEx's.
+/// </summary>
+internal static class ConfigKeyRules
+{
+    private static readonly char[] InvalidIdChars = ['=', '\n', '\t', '\\', '"', '\'', '[', ']'];
+
+    private static readonly HashSet<Type> BepInExTypes =
+    [
+        typeof(string), typeof(bool), typeof(sbyte), typeof(byte), typeof(short), typeof(ushort), typeof(int), typeof(uint),
+        typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(decimal),
+    ];
+
+    // The BepisLoader shim adds Resonite's engine primitives (float3, colorX, ...) and dummy.
+    // Read through reflection, since only the loaders running in Resonite have FrooxEngine.
+    private static readonly Lazy<HashSet<Type>> ResoniteTypes = new(() =>
+    {
+        var genericTypes = Type.GetType("FrooxEngine.GenericTypesAttribute, FrooxEngine");
+        var group = genericTypes?.GetNestedType("Group");
+        if (genericTypes?.GetMethod("GetTypes", BindingFlags.Public | BindingFlags.Static) is not MethodInfo getTypes || group is null)
+            return [];
+        var types = new HashSet<Type>((Type[])getTypes.Invoke(null, [Enum.Parse(group, "EnginePrimitives")])!);
+        if (Type.GetType("Elements.Core.dummy, Elements.Core") is Type dummy)
+            types.Add(dummy);
+        return types;
+    });
+
+    /// <exception cref="ArgumentException">The id or value type doesn't work on every loader.</exception>
+    internal static string CheckDefinition(string id, Type valueType)
+    {
+        ArgumentNullException.ThrowIfNull(id);
+        if (id != id.Trim())
+            throw new ArgumentException($"Config key [{id}] can't start or end with whitespace", nameof(id));
+        if (id.IndexOfAny(InvalidIdChars) >= 0)
+            throw new ArgumentException($"Config key [{id}] can't contain any of these characters: = \\n \\t \\ \" ' [ ]", nameof(id));
+        if (!valueType.IsEnum && !BepInExTypes.Contains(valueType) && !ResoniteTypes.Value.Contains(valueType))
+            throw new ArgumentException($"Config key [{id}] has type {valueType}, which isn't supported. Use string, bool, a number type, decimal, an enum or a Resonite primitive (like float3, colorX, Uri or DateTime).", nameof(id));
+        return id;
+    }
 }
 
 public class FuncValueValidator<T> : IValueValidator<T>

@@ -71,7 +71,7 @@ public partial class ConfigurationKey<T> : IDefiningKeyFactory
     private readonly string? _description;
     public ConfigurationKey(string id, string? description = default, T? defaultValue = default, IValueValidator<T>? valueValidator = default, params string[] tags)
     {
-        _id = id;
+        _id = ConfigKeyRules.CheckDefinition(id, typeof(T));
         _defaultValue = defaultValue;
         _description = description;
         Validator = valueValidator;
