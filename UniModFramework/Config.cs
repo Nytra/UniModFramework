@@ -21,4 +21,5 @@ public partial class ConfigurationKey<T>
         Value = val;
         OnChanged?.Invoke(Value);
     }
+    public partial void ResetToDefault() => StoreValue(DefaultValue);
 }

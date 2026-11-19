@@ -11,6 +11,10 @@ public interface IConfigurationKey
     string[] Tags {get;}
     IValueValidator? Validator {get;}
     Type ValueType {get;}
+    /// <summary>
+    /// Sets the value back to the default, the way the loader does it.
+    /// </summary>
+    void ResetToDefault();
 }
 
 public interface IConfigurationKey<T> : IConfigurationKey
@@ -92,7 +96,7 @@ public partial class Config
     {
         var warnings = new List<string>();
         AddLoaderWarnings(warnings);
-        foreach (var key in ConfigurationKeys.OfType<IResettableKey>())
+        foreach (var key in ConfigurationKeys)
         {
             if (key.Validator?.Validate(key.Value) != false)
                 continue;
@@ -108,15 +112,10 @@ public partial class Config
     partial void AddLoaderWarnings(List<string> warnings);
 }
 
-internal interface IResettableKey : IConfigurationKey
-{
-    void ResetToDefault();
-}
-
 /// <summary>
 /// The parts of a config key that are the same for every loader. Each loader stores the value in its own config.
 /// </summary>
-public partial class ConfigurationKey<T> : IConfigurationKey<T>, IResettableKey
+public partial class ConfigurationKey<T> : IConfigurationKey<T>
 {
     public string[] Tags {get;}
     public IValueValidator<T>? Validator {get;}
@@ -133,7 +132,8 @@ public partial class ConfigurationKey<T> : IConfigurationKey<T>, IResettableKey
         StoreValue(val);
         return true;
     }
-    void IResettableKey.ResetToDefault() => StoreValue(DefaultValue);
+    /// <inheritdoc/>
+    public partial void ResetToDefault();
     /// <summary>
     /// Stores an already validated value in the loader's config.
     /// </summary>

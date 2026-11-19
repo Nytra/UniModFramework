@@ -32,6 +32,12 @@ public partial class ConfigurationKey<T> : IBindableKey
             throw new InvalidOperationException($"Config key [{_id}] can't be set before the config is loaded");
         _configEntry.Value = val!;
     }
+    // BepInEx has no reset, setting the default is how it's done. Before the config is loaded the value is already the default.
+    public partial void ResetToDefault()
+    {
+        if (_configEntry is not null)
+            _configEntry.Value = _defaultValue!;
+    }
     void IBindableKey.Bind(ConfigFile file)
     {
         _configEntry = file.Bind("General", _id, _defaultValue!, new ConfigDescription(_description, CreateAcceptableValues(), Tags));

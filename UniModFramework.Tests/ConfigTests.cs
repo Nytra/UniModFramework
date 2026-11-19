@@ -58,6 +58,15 @@ public class ConfigTests
     }
 
     [Fact]
+    public void Reset_to_default_sets_the_default()
+    {
+        IConfigurationKey key = new ConfigurationKey<int>("Key", defaultValue: 1);
+        ((ConfigurationKey<int>)key).SetValue(5);
+        key.ResetToDefault();
+        Assert.Equal(1, key.Value);
+    }
+
+    [Fact]
     public void Reset_invalid_values_resets_to_default_with_a_warning()
     {
         var config = new DerivedConfig();

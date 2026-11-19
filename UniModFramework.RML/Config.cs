@@ -22,4 +22,7 @@ public partial class ConfigurationKey<T> : ModConfigurationKey<T>
     }
     // RML doesn't validate values set in code or loaded from the config file
     private partial void StoreValue(T? val) => Value = val;
+    // RML resets keys by removing their value through ModConfiguration.Unset, which keys can't reach.
+    // Setting the default gives the same value, but the config file stores it.
+    public partial void ResetToDefault() => Value = DefaultValue;
 }

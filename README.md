@@ -10,19 +10,22 @@ Mods are compiled against the `UniModFramework` project, which only builds a ref
 
 Every public or protected member of the reference assembly must also exist in each backend (declared or inherited), or mods fail at runtime. `ApiCompatibilityTests` checks this.
 
+`CLAUDE.md` has maintainer notes: how each loader behaves, why things are done the way they are, and open items.
+
 ## Writing mods
 
 - Derive from `UniMod<TMod, TConfig>`, pre-patchers from `UniPrePatcher<TPatcher, TConfig>`. Mods without config keys use an empty config class.
 - Harmony comes with the `Nytra.UniModFramework` package as `Lib.Harmony.Ref` 2.3.6, the newest Harmony whose whole API HarmonyX (used by BepisLoader) also has. Each loader provides its own Harmony at runtime (RML and MonkeyLoader use Harmony 2.4, BepisLoader uses HarmonyX), so don't reference a newer Harmony or HarmonyX, or the mod may use members that are missing on some loaders.
 - Pre-patchers also need `Mono.Cecil` for the patch methods. MonkeyLoader and BepisLoader ship 0.11.6.
 - `Config` is available from `OnLoad`/`OnInitialize` onwards. Every `ConfigurationKey` field of the config class (and its base classes) is a key, and `Config.ConfigurationKeys` lists them.
-- `SetValue` throws an `ArgumentException` for values the validator rejects and keeps the old value, `TrySetValue` returns `false` instead.
-- Invalid values loaded from a config file are replaced with the default and a warning is logged. On BepisLoader, range and list validators use BepInEx's own types so that BepisModSettings shows sliders and dropdowns, which means BepInEx clamps out of range values and replaces values missing from the list with the first one instead.
-- Tag a key with `ConfigTags.Hidden` to hide it from config UIs.
+- `SetValue` throws an `ArgumentException` for values the validator rejects and keeps the old value, `TrySetValue` returns `false` instead. `ResetToDefault` sets the default.
+- Invalid values loaded from a config file are replaced with the default and a warning is logged. On BepisLoader, BepInEx clamps range values and replaces list values with the first one instead.
+- Range validators show as sliders in BepisModSettings and MonkeyLoader's settings, and list validators as dropdowns in BepisModSettings. ResoniteModSettings doesn't show sliders for them yet.
+- Tags work like BepInEx's and are only used by BepisLoader, except `ConfigTags.Hidden`, which hides the key from config UIs on every loader (MonkeyLoader and RML make it internal access only).
 - `LogDebug`, `LogInfo`, `LogWarn` and `LogError` write to the loader's log and are static, so Harmony patch classes can use them.
 - `[FeatureRequirement(Feature.PrePatching)]` on the mod class stops it loading (with an error logged) on loaders without that feature. `RequirementType.Optional` only documents that the mod uses it, check with `HasFeature` instead.
 - Returning `false` from `OnLoad`, `OnReady`, `OnInitialize` or `OnFinalize` logs an error. On BepisLoader patch methods still run if `OnInitialize` fails.
-- Pre-patch methods take `[TargetAssembly]`, `[TargetType]` (both can be repeated) or `[TargetAllAssemblies]` and follow BepInEx's rules: an optional second `string` parameter gets the target file name, and returning `void` or `true` reports changes.
+- Pre-patch methods follow BepInEx's rules, which MonkeyLoader emulates: `[TargetAssembly]`, `[TargetType]` (both can be repeated) or `[TargetAllAssemblies]`, an `AssemblyDefinition` (optionally `ref`) or `TypeDefinition` parameter, an optional second `string` parameter that gets the target file name, and returning `void` or `true` to report changes.
 
 ## Versioning
 

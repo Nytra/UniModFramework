@@ -83,25 +83,21 @@ public partial class ConfigurationKey<T> : IDefiningKeyFactory
             throw new InvalidOperationException($"Config key [{_id}] can't be set before the config is loaded");
         _configKey.SetValue(val!);
     }
+    // Before the config is loaded the value is already the default
+    public partial void ResetToDefault() => _configKey?.Reset();
     IDefiningConfigKey IDefiningKeyFactory.CreateDefiningKey()
     {
         _configKey = new(_id, _description, () => _defaultValue!, Tags.Contains(ConfigTags.Hidden));
-        if (Validator is not null)
-            _configKey.Add(new ValidatorComponent<T>(Validator));
+        if (CreateValidator() is IConfigKeyValidator<T> validator)
+            _configKey.Add(validator);
         _configKey.Changed += (sender, args) => OnChanged?.Invoke(_configKey.GetValue());
         return _configKey;
     }
-}
-
-/// <summary>
-/// Lets MonkeyLoader use any <see cref="IValueValidator{T}"/>.
-/// </summary>
-internal class ValidatorComponent<T>(IValueValidator<T> validator) : IConfigKeyValidator<T>
-{
-    // Invalid values from the config file are handled by Config.OnLoad
-    public void Initialize(IDefiningConfigKey<T> entity)
+    // MonkeyLoader's settings only show sliders for keys with a range component
+    private IConfigKeyValidator<T>? CreateValidator() => Validator switch
     {
-    }
-
-    public bool IsValid(T? value) => validator.Validate(value);
+        null => null,
+        IRangeValueValidator range => (IConfigKeyValidator<T>)Activator.CreateInstance(typeof(ConfigKeyRange<>).MakeGenericType(typeof(T)), range.Min, range.Max, null)!,
+        _ => new ConfigKeyValidator<T>(Validator.Validate),
+    };
 }
