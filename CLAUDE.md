@@ -11,6 +11,11 @@ dotnet test UniModFramework.Tests --no-build
 
 Use `-p:CopyToPlugins=false` so test builds don't copy into the game or Gale profile (`Directory.Build.props.user` turns copying on for local dev). After changing analyzers or build settings, use `--no-incremental`: incremental builds can skip the compile and hide errors.
 
+## Working on this repo
+
+- Agree on design changes with the maintainer before changing code. Present the options and a recommendation, and let them decide. Several rounds of changing the code before the design was settled had to be undone.
+- Keep diffs small and in the style of the surrounding code, write tests for significant code, and keep this file and `README.md` up to date.
+
 ## Rules for changes
 
 - Every public or protected member of the reference project must exist in each backend, declared or inherited, or mods built against it fail at runtime. `ApiCompatibilityTests` checks this against the built DLLs.
@@ -21,6 +26,13 @@ Use `-p:CopyToPlugins=false` so test builds don't copy into the game or Gale pro
   - ResoniteModLoader: https://github.com/resonite-modding-group/ResoniteModLoader
   - BepisLoader (includes BepInEx.Core and BepInEx.Preloader.Core): https://github.com/ResoniteModding/BepisLoader
   - BepisModSettings: https://github.com/ResoniteModding/BepisModSettings
+  - ResoniteModSettings (RML's settings UI): https://github.com/badhaloninja/ResoniteModSettings
+  - MonkeyLoader.GamePacks.Resonite (MonkeyLoader's settings UI): https://github.com/ResoniteModdingGroup/MonkeyLoader.GamePacks.Resonite
+- The versions the projects build against can differ from the repos' main branches (e.g. `MonkeyBase<T>.Logger` is static in the MonkeyLoader 0.29.0 package but not on main). When it matters, check the packaged or installed DLL itself, e.g. by reading its IL with Mono.Cecil.
+- Some loader types are created or found through reflection, so the compiler doesn't check them. Re-check these when updating a loader:
+  - BepisLoader: `AcceptableValueRange<T>(min, max)` and `AcceptableValueList<T>(values)` in `CreateAcceptableValues`;
+  - MonkeyLoader: `ConfigKeyRange<T>(min, max, comparer)` in `CreateValidator`;
+  - `FrooxEngine.GenericTypesAttribute.GetTypes(Group.EnginePrimitives)` and `Elements.Core.dummy` in `ConfigKeyRules`, which mirror the types the BepisLoader shim registers TOML converters for.
 
 ## Design
 
@@ -31,6 +43,12 @@ These were agreed after several rounds of going back and forth, so change them o
 3. When the loaders disagree, pick what makes most sense for mod authors, not what one particular loader does, and emulate it on the others. If two options are about equally good, prefer the one that's cheaper to emulate.
 4. Things a loader can't provide become `Feature`s that mods check with `HasFeature` or require with `[FeatureRequirement]`, like pre-patching on RML.
 5. Keep the API small. Adding something later doesn't break mods; removing it does.
+
+Approaches tried and rejected while getting there:
+
+- Only the overlap of what all loaders have: dropped useful things like `[TargetAllAssemblies]` and free-form tags.
+- Each backend forwarding its loader's own behaviour: mods would behave differently per loader, which is what the framework exists to avoid.
+- BepInEx as the source of truth for everything, emulated on the others (e.g. replacing invalid values the way BepInEx does): too much emulation code for behaviour that isn't better.
 
 Decisions made with these:
 
@@ -111,7 +129,10 @@ Decisions made with these:
   - MonkeyLoader's settings showing sliders for range keys;
   - pre-patching on MonkeyLoader, including two patch methods on the same assembly and `[TargetAllAssemblies]`;
   - BepisModSettings sliders and dropdowns for range and list keys;
-  - BepInEx still finding plugins through `UniMod<,>`.
+  - BepInEx still finding plugins through `UniMod<,>`;
+  - `ResetToDefault` and `OnChanged` (not firing for unchanged values) on each loader;
+  - the message for a missing optional feature on RML;
+  - keys with Resonite primitive types (e.g. `float3`, `colorX`), which need the BepisLoader shim's converters on BepisLoader and the reflection lookup in `ConfigKeyRules` on the others.
 - No sliders on RML, deliberately left for later. If it becomes important, the preferred option is a runtime patch of ResoniteModSettings so it finds a range for the framework's keys (depends on its internals). Asking its maintainer to read a range from the key itself was considered and rejected.
 - The config UIs of the loaders handle invalid input their own way, the framework can't change that without patching them.
 - After the first NuGet release, set `PackageValidationBaselineVersion` in `UniModFramework/UniModFramework.csproj`.
