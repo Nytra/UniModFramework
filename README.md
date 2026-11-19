@@ -1,44 +1,69 @@
-NOTE: This is still being developed and there may be breaking changes!
+# UniModFramework
 
-## How it works
+Write a Resonite mod once and run it on ResoniteModLoader, MonkeyLoader or BepisLoader.
 
-Mods are compiled against the `UniModFramework` project, which only builds a reference assembly. Each loader has its own backend project (`UniModFramework.RML`, `UniModFramework.MonkeyLoader`, `UniModFramework.BepisLoader`) that builds a `UniModFramework.dll` with the same types and members on top of that loader's API, and the user installs the backend for their loader.
+> Still in development, expect breaking changes.
 
-- `Shared/` is compiled into every project: `UniMod`, `UniPrePatcher`, the attributes, the config interfaces and validators, key discovery and the loader-independent half of `ConfigurationKey`. Each backend adds its loader-specific parts with `partial` classes and methods (`StoreValue`, `ResetValue`, `WriteLog`, `Backend.HasFeature`), so a backend missing one doesn't compile. The BepisLoader backend replaces `Shared/Attributes.cs` with its own, built on BepInEx's attributes.
-- `UniModFramework/Backend.cs` and `Config.cs` are stubs only used by the reference assembly.
+Mods compile against the `Nytra.UniModFramework` package. Players install the UniModFramework build for their loader.
 
-Every public or protected member of the reference assembly must also exist in each backend (declared or inherited), or mods fail at runtime. `ApiCompatibilityTests` checks this.
+## Writing a mod
 
-`CLAUDE.md` has maintainer notes: how each loader behaves, why things are done the way they are, and open items.
+```csharp
+public class MyConfig : Config
+{
+    public ConfigurationKey<float> Speed = new("Speed", "How fast", 4.5f, new RangeValueValidator<float>(1f, 10f));
+}
 
-## Writing mods
+[Metadata("You.MyMod", "MyMod", "1.0.0", "You", "https://github.com/you/MyMod")]
+public class MyMod : UniMod<MyMod, MyConfig>
+{
+    protected override bool OnLoad(Harmony harmony)
+    {
+        harmony.PatchAll();
+        Config.Speed.OnChanged += speed => LogInfo($"Speed is now {speed}");
+        return true;
+    }
+}
+```
 
-- Derive from `UniMod<TMod, TConfig>`, pre-patchers from `UniPrePatcher<TPatcher, TConfig>`. Mods without config keys use an empty config class.
-- Harmony comes with the `Nytra.UniModFramework` package as `Lib.Harmony.Ref` 2.3.6, the newest Harmony whose whole API HarmonyX (used by BepisLoader) also has. Each loader provides its own Harmony at runtime (RML and MonkeyLoader use Harmony 2.4, BepisLoader uses HarmonyX), so don't reference a newer Harmony or HarmonyX, or the mod may use members that are missing on some loaders.
-- Pre-patchers also need `Mono.Cecil` for the patch methods. MonkeyLoader and BepisLoader ship 0.11.6.
-- `Config` is available from `OnLoad`/`OnInitialize` onwards. Every `ConfigurationKey` field of the config class (and its base classes) is a key, and `Config.ConfigurationKeys` lists them.
-- Keys follow BepInEx's rules on every loader, so they work everywhere: ids can't contain `= \n \t \ " ' [ ]` or start or end with whitespace, and values can be `string`, `bool`, a number type, `decimal`, an enum or a Resonite primitive (like `float3`, `colorX`, `Uri` or `DateTime`). Other ids and types throw an `ArgumentException` when the key is created.
-- `OnChanged` only fires when the value actually changes. For string keys, `null` and `""` should be treated the same, since BepInEx saves `null` as `""`.
-- `SetValue` throws an `ArgumentException` for values the validator rejects and keeps the old value, `TrySetValue` returns `false` instead. `ResetToDefault` sets the default.
-- Invalid values loaded from a config file are replaced with the default and a warning is logged. On BepisLoader, BepInEx clamps range values and replaces list values with the first one instead.
-- Range validators show as sliders in BepisModSettings and MonkeyLoader's settings, and list validators as dropdowns in BepisModSettings. ResoniteModSettings doesn't show sliders for them yet.
-- Tags work like BepInEx's and are only used by BepisLoader, except `ConfigTags.Hidden`, which hides the key from config UIs on every loader (MonkeyLoader and RML make it internal access only).
-- `LogDebug`, `LogInfo`, `LogWarn` and `LogError` write to the loader's log and are static, so Harmony patch classes can use them.
-- `[FeatureRequirement(Feature.PrePatching)]` on the mod class stops it loading (with an error logged) on loaders without that feature. With `RequirementType.Optional` the mod still loads, a message is logged saying some of its features are off, and the mod checks `HasFeature` to work without it.
-- Returning `false` from `OnLoad`, `OnReady`, `OnInitialize` or `OnFinalize` logs an error. On BepisLoader patch methods still run if `OnInitialize` fails.
-- Pre-patch methods follow BepInEx's rules, which MonkeyLoader emulates: `[TargetAssembly]`, `[TargetType]` (both can be repeated) or `[TargetAllAssemblies]`, an `AssemblyDefinition` (optionally `ref`) or `TypeDefinition` parameter, an optional second `string` parameter that gets the target file name, and returning `void` or `true` to report changes.
+- `OnLoad` runs when the mod loads, maybe before the game has. `OnReady` runs once the game is ready. Returning `false` logs an error.
+- `LogDebug`, `LogInfo`, `LogWarn` and `LogError` are static, so Harmony patch classes can use them.
+- Use the Harmony that comes with the package. Don't reference a newer Harmony or HarmonyX, because each loader brings its own.
 
-## Versioning
+See `ExampleMod` and `ExamplePrePatcher` for more.
 
-Mods built against an older UniModFramework keep working on newer ones, as long as nothing they use is removed or changed. To keep it that way:
+### Config
 
-- The `Nytra.UniModFramework` package has NuGet package validation enabled. Once a version is published, set `PackageValidationBaselineVersion` in `UniModFramework/UniModFramework.csproj` to it, and `dotnet pack` fails if the API breaks mods built against that version.
-- Mark members `[Obsolete]` and add new ones instead of removing or changing them, and keep behaviour mods rely on.
-- Bump `Version` in `Directory.Build.props` for each release. A mod built against a newer UniModFramework than the installed one isn't loaded and an error is logged instead, since it may use members the installed one doesn't have.
+- Every `ConfigurationKey` field of the config class is a key. Mods without config use an empty config class.
+- Key ids can't contain `= \n \t \ " ' [ ]` or start or end with whitespace. Values can be `string`, `bool`, number types, `decimal`, enums or Resonite primitives (like `float3` or `colorX`). Anything else throws when the key is created.
+- `SetValue` throws for values the validator rejects, `TrySetValue` returns `false`. Invalid values in a config file become the default (on BepisLoader, range values are clamped and list values become the first one).
+- `OnChanged` only fires when the value changes.
+- For string keys, treat `null` and `""` the same.
+- `RangeValueValidator` shows as a slider on BepisLoader and MonkeyLoader, `ListValueValidator` as a dropdown on BepisLoader.
+- `ConfigTags.Hidden` hides a key from config UIs.
+
+### Features
+
+Not every loader has every feature (RML has no pre-patching). `[FeatureRequirement(Feature.PrePatching)]` stops the mod loading where it's missing. With `RequirementType.Optional` the mod loads anyway and checks `HasFeature`.
+
+### Pre-patchers
+
+Derive from `UniPrePatcher<TPatcher, TConfig>` and reference `Mono.Cecil` 0.11.6. Patch methods work like BepInEx's:
+
+- `[TargetAssembly]` or `[TargetType]` (both can be repeated), or `[TargetAllAssemblies]`;
+- an `AssemblyDefinition` (optionally `ref`) or `TypeDefinition` parameter, and optionally a `string` parameter that gets the file name;
+- return `void` or `true` if the method changed something, `false` if not.
+
+On BepisLoader patch methods still run if `OnInitialize` fails.
 
 ## Building
 
-Builds don't copy into the game unless you ask. Put machine-specific settings in a `Directory.Build.props.user` next to `Directory.Build.props` (git ignores it):
+```bash
+dotnet build UniModFramework.slnx -p:CopyToPlugins=false
+dotnet test UniModFramework.Tests --no-build
+```
+
+To copy builds into the game, add a `Directory.Build.props.user` (git ignores it):
 
 ```xml
 <Project>
@@ -52,11 +77,4 @@ Builds don't copy into the game unless you ask. Put machine-specific settings in
 
 Without `GamePath`, the default Steam locations and the `ResonitePath` environment variable are tried.
 
-## Testing
-
-```bash
-dotnet build UniModFramework.slnx -p:CopyToPlugins=false
-dotnet test UniModFramework.Tests --no-build
-```
-
-`ApiCompatibilityTests` checks every backend build against the reference assembly's API, so the backends must be built first. The other tests cover the shared config, validator, version check and feature requirement code. The loader backends themselves need testing in-game.
+How the backends work, the design decisions and the release steps are in `CLAUDE.md`.

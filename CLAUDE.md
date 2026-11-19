@@ -11,6 +11,16 @@ dotnet test UniModFramework.Tests --no-build
 
 Use `-p:CopyToPlugins=false` so test builds don't copy into the game or Gale profile (`Directory.Build.props.user` turns copying on for local dev). After changing analyzers or build settings, use `--no-incremental`: incremental builds can skip the compile and hide errors.
 
+`ApiCompatibilityTests` reads the backend builds, so build before testing. The other tests cover the shared code. The backends themselves can only be tested in-game.
+
+## How it works
+
+Mods compile against the `UniModFramework` project, which only builds a reference assembly. Each backend project (`UniModFramework.RML`, `UniModFramework.MonkeyLoader`, `UniModFramework.BepisLoader`) builds a `UniModFramework.dll` with the same public API on top of its loader, and players install the one for their loader.
+
+- `Shared/` holds everything that's the same for every loader: `UniMod`, `UniPrePatcher`, the attributes, the config interfaces and validators, key discovery, the shared half of `ConfigurationKey` and the startup checks in `Backend`.
+- Each backend fills in the `partial` members: `ConfigurationKey`'s properties, constructor, `StoreValue` and `ResetValue`, the `WriteLog` methods and `Backend.HasFeature`.
+- `UniModFramework/` holds the stubs for the reference assembly. The tests compile those, so they run the shared code against in-memory keys.
+
 ## Working on this repo
 
 - Agree on design changes with the maintainer before changing code. Present the options and a recommendation, and let them decide. Several rounds of changing the code before the design was settled had to be undone.
@@ -33,6 +43,11 @@ Use `-p:CopyToPlugins=false` so test builds don't copy into the game or Gale pro
   - BepisLoader: `AcceptableValueRange<T>(min, max)` and `AcceptableValueList<T>(values)` in `CreateAcceptableValues`;
   - MonkeyLoader: `ConfigKeyRange<T>(min, max, comparer)` in `CreateValidator`;
   - `FrooxEngine.GenericTypesAttribute.GetTypes(Group.EnginePrimitives)` and `Elements.Core.dummy` in `ConfigKeyRules`, which mirror the types the BepisLoader shim registers TOML converters for.
+
+## Releasing
+
+- Bump `Version` in `Directory.Build.props`. Mods built against a newer UniModFramework than the installed one aren't loaded and an error is logged, since they may use members that are missing.
+- After the first NuGet release, set `PackageValidationBaselineVersion` in `UniModFramework/UniModFramework.csproj` to the last published version, so `dotnet pack` fails if the API breaks mods built against it.
 
 ## Design
 
@@ -136,5 +151,4 @@ Decisions made with these:
   - keys with Resonite primitive types (e.g. `float3`, `colorX`), which need the BepisLoader shim's converters on BepisLoader and the reflection lookup in `ConfigKeyRules` on the others.
 - No sliders on RML, deliberately left for later. If it becomes important, the preferred option is a runtime patch of ResoniteModSettings so it finds a range for the framework's keys (depends on its internals). Asking its maintainer to read a range from the key itself was considered and rejected.
 - The config UIs of the loaders handle invalid input their own way, the framework can't change that without patching them.
-- After the first NuGet release, set `PackageValidationBaselineVersion` in `UniModFramework/UniModFramework.csproj`.
 - No unit tests cover the backends themselves (they need the loaders running), only the shared code and the API surface.
